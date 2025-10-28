@@ -25,7 +25,7 @@ import {
   swapToken,
   finalizeSwapToken,
   sendTransactionHash,
-  getUnconfirmedBeldexTxs
+  getUnconfirmedBeldexTxs,
 } from "../../store/swapReducer";
 import {
   selectInfo,
@@ -35,6 +35,7 @@ import {
   selectSwapError,
   selectSwapLoading,
   selectswapResult,
+  selectfinalizeSwapTokenResult,
 } from "../../store/swapSelector";
 
 const currencySymbols = {
@@ -56,15 +57,13 @@ function Swap({ showMessage }) {
   const loading = useSelector(selectSwapLoading);
   const error = useSelector(selectSwapError);
   const swapResult = useSelector(selectswapResult);
+  const finalizeSwapTokenResult = useSelector(selectfinalizeSwapTokenResult);
+
   let web3Obj = new Web3(window.ethereum);
-  let  contract = new web3Obj.eth.Contract(
+  let contract = new web3Obj.eth.Contract(
     matrixAbi.abi,
     // process.env.REACT_APP_CONTRACT_ADDR
-    '0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f'
-  );
-
-  console.log(
-   'swapResultswapResult -->',swapResult,'swaps -->',swaps
+    "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
   );
 
   // Local UI/wallet state
@@ -81,15 +80,6 @@ function Swap({ showMessage }) {
   const [connectedWalletAddress, setConnectedWalletAddress] = useState("");
   const [connectedWalletBalance, setConnectedWalletBalance] = useState("");
   const handleBack = useCallback(() => setPage(0), [setPage]);
-  console.log("swapselection 1");
-  // INITIAL LOAD: Info and Swaps
-  useEffect(() => {
-    console.log("swapselection 2");
-    dispatch(getInfo());
-    console.log("swapselection 3");
-    dispatch(getSwaps());
-    console.log("swapselection 4");
-  }, [dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -100,6 +90,10 @@ function Swap({ showMessage }) {
       }
     }
   }, []);
+  useEffect(() => {
+    sentGetSwap();
+    UnconfirmedTransactions();
+  }, [swapResult]);
 
   // Merge unconfirmed & swaps like your original renderTransactions
   const mergedSwaps = useMemo(() => {
@@ -116,14 +110,8 @@ function Swap({ showMessage }) {
       })
     );
     const validSwap = swaps || [];
-    console.log(
-      "swapsswapsswaps -->",
-      swaps,
-      [...unconfirmedSwaps, swaps],
-      validSwap
-    );
-
-    return [...unconfirmedSwaps, validSwap];
+    
+  return [...unconfirmedSwaps, ...validSwap];
   }, [unconfirmed, swaps, swapType]);
 
   // Wallet connect, transaction logic remains in local functions/useCallback (can add here)
@@ -139,35 +127,22 @@ function Swap({ showMessage }) {
     return false;
   };
   const connectToMetaMask = async () => {
-    console.log("closeConsole7");
-    console.log("connectToMetaMask -->");
-
+  
     let mobileView = await mobileCheck();
     const provider = window.ethereum;
     // const binanceChainId = process.env.REACT_APP_CHAINID;
     const binanceChainId = "0x61";
-
-    console.log("connectToMetaMask 2-->");
-    console.log("closeConsole8");
     if (!mobileView && !window.ethereum.isMetaMask) {
-      console.log("closeConsole9");
-
       return props.showMessage(t("MetaMask is not installed."), "error");
     }
     const web3Obj = new Web3(window.ethereum);
-    console.log("connectToMetaMask 3-->", web3Obj);
-    console.log("closeConsole10");
     // alert(web3Obj)
     try {
-      console.log("connectToMetaMask ::1");
       window.ethereum.enable();
-      console.log("connectToMetaMask 4-->", web3Obj);
-
       if (web3Obj) {
         const chainId = await window.ethereum.request({
           method: "eth_chainId",
         });
-        console.log("chainId:", chainId, "binanceChainId -->", binanceChainId);
         if (chainId === binanceChainId) {
           console.log("Bravo!, you are on the correct network");
         } else {
@@ -212,15 +187,12 @@ function Swap({ showMessage }) {
             }
           }
         }
-        console.log("connectToMetaMask 6-->", web3Obj);
-
         const account = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
         const address = account[0] || null;
         setWalletAddress(address);
         getBalance(address);
-        console.log("addressaddressaddressaddress:::", address);
 
         //   let address = setInterval(() => {
         //     console.log('connectToMetaMask 6.2-->','errerr -->',)
@@ -255,7 +227,6 @@ function Swap({ showMessage }) {
   };
   const connectToMetamaskMobile = async () => {
     // if (mobileCheck()) {
-    //   console.log("mobileCheck ::");
     if (
       typeof navigator !== "undefined" &&
       /MetaMaskMobile/i.test(navigator.userAgent)
@@ -352,8 +323,6 @@ function Swap({ showMessage }) {
       //  const chainId = await window.ethereum.request({
       //   method: "eth_chainId",
       // });
-      // console.log("chainId:",chainId)
-      console.log("account:", account);
       if (account) connectToBinance();
     } else {
       const trustWalletLink =
@@ -381,10 +350,10 @@ function Swap({ showMessage }) {
         const timestamp = Math.floor(new Date().getTime() / 1000.0);
         if (confirmationNumber === 0) {
           const reqObj = {
-            uuid: swapInfo.uuid,
+            uuid: swapResult.uuid,
             amount: amount,
             timestamp: timestamp,
-            memo: swapInfo.memo,
+            memo: swapResult.memo,
             hash: receipt.transactionHash,
           };
           dispatch(sendTransactionHash(reqObj));
@@ -441,33 +410,28 @@ function Swap({ showMessage }) {
 
     // Get balance in Wei
     const balance = await web3.eth.getBalance(address);
-    console.log("balance  -->", balance);
     // const result = await contract.methods
     //       .balanceOf(walletAddress)
     //       .call();
-    //       console.log("result:",result)
     const currentBal = Math.floor((Number(balance) / 1e18) * 10000) / 10000;
     setConnectedWalletAddress(address);
     setConnectedWalletBalance(currentBal);
-    console.log("getBalance ::", currentBal);
   };
-  const disconnetWallet = async () => {
-    await window.ethereum.request({
-      method: "wallet_requestPermissions",
-      params: [
-        {
-          eth_accounts: {},
-        },
-      ],
-    });
-  };
+  // const disconnetWallet = async () => {
+  //   await window.ethereum.request({
+  //     method: "wallet_requestPermissions",
+  //     params: [
+  //       {
+  //         eth_accounts: {},
+  //       },
+  //     ],
+  //   });
+  // };
   const handlePopupClose = (value) => {
-    console.log("closeConsole3", value);
     setShowPopup(!showPopup);
     setSelectedWallet(value);
     if (value === "Binance" || value === "Trust Wallet") {
       if (mobileCheck()) {
-        console.log("closeConsole7  ", value);
         connectToTrustWallet();
       } else {
         connectToBinance();
@@ -488,14 +452,32 @@ function Swap({ showMessage }) {
       //   });
       //   if (account) connectToMetaMask();
       // }
-      console.log("closeConsole4", value);
+   
       if (mobileCheck()) {
         connectToMetamaskMobile();
       } else {
-        console.log("closeConsole5", value);
         connectToMetaMask();
       }
     }
+  };
+  const onRefresh = () => {
+    sentGetSwap();
+    UnconfirmedTransactions();
+    handleFinalizeSwap();
+  };
+
+  const handleFinalizeSwap = useCallback(() => {
+    dispatch(finalizeSwapToken({ uuid: swapResult.uuid }));
+  }, [dispatch, swapResult]);
+
+  const UnconfirmedTransactions = () => {
+    if (swapType !== SWAP_TYPE.BDX_TO_BBDX) return;
+    if (!swapResult) return swapResult;
+    dispatch(
+      getUnconfirmedBeldexTxs({
+        uuid: swapResult.uuid,
+      })
+    );
   };
 
   const transactionsInfo = (transaction) => {
@@ -510,42 +492,52 @@ function Swap({ showMessage }) {
   const onTokenSwapped = async () => {
     // this.setState({ swapInfo, page: 1 }, async () => {
     // const { walletAddress, swapType, amount, selectedWallet } = this.state;
- console.log('swapType === SWAP_TYPE.BBDX_TO_BDX -->',swapType === SWAP_TYPE.BBDX_TO_BDX,connectedWalletAddress)
+   
     if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
       const result = await contract.methods
         .balanceOf(connectedWalletAddress)
         .call();
-        console.log('resultresult -->',result)
       const balance = Number(result) / 1e9;
-      console.log('resultresult -->',balance)
       if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
         if (parseFloat(amount) > parseFloat(balance)) {
           // this.props.showMessage(
           //   this.props.t("exceedingBalanceWarning"),
           //   "error"
           // );
-          console.log(t("exceedingBalanceWarning"))
+          console.log(t("exceedingBalanceWarning"));
         } else if (parseFloat(amount) > 0) {
           makeTransaction();
-          console.log('makeTransaction')
         } else {
           // this.props.showMessage(this.props.t("greaterThanZeroError"), "error");
-          console.log(t("greaterThanZeroError"),parseFloat(amount),amount)
+          console.log(t("greaterThanZeroError"), parseFloat(amount), amount);
         }
       } else {
-        console.log(`Connect to ${selectedWallet === "" ? "Wallet" : selectedWallet}`)
-        
+        console.log(
+          `Connect to ${selectedWallet === "" ? "Wallet" : selectedWallet}`
+        );
+
         // this.props.showMessage(
         //   `Connect to ${selectedWallet === "" ? "Wallet" : selectedWallet}`,
         //   "error"
         // );
       }
     }
-    // });
-    setImmediate(() =>  dispatch(getSwaps()));
-    setImmediate(() => dispatch(getUnconfirmedBeldexTxs()))
+    
+
+    // Later, to clear them (e.g., on component unmount or when stopping)
+
+    setPage(1);
     // setImmediate(() => this.getUnconfirmedTransactions());
     // setImmediate(() => this.getSwaps());
+  };
+  const sentGetSwap = () => {
+    if (!swapResult) return;
+    dispatch(
+      getSwaps({
+        uuid: swapResult.uuid,
+      })
+    );
+    // swapResult.uuid
   };
   // NEXT ACTION (after selecting wallet/address/amount)
   const handleNext = async (selAddress, selAmount) => {
@@ -554,13 +546,8 @@ function Swap({ showMessage }) {
     // Gas check logic as before...
     dispatch(swapToken({ type: swapType, address: selAddress }));
     onTokenSwapped();
-    setPage(1);
   };
 
-  const handleFinalizeSwap = useCallback(() => {
-    dispatch(finalizeSwapToken({ uuid: swapInfo.uuid }));
-  }, [dispatch, swapInfo]);
-  console.log("swapselection 5");
   // For rendering the transaction list
 
   const renderTransactions = useCallback(
@@ -589,19 +576,17 @@ function Swap({ showMessage }) {
         </Box>
       </Grid>
     ),
-    [classes, mergedSwaps, t]
+    [classes, mergedSwaps, t, swaps]
   );
 
   // Selection page
 
   const renderSelection = useCallback(
     (totalSupply, movedBalance) => {
-      console.log("renderSelection called");
       return (
         <Grid container className={classes.registerWrapper}>
           <Grid size={{ xs: 12, md: 5 }}>
             <div className={classes.leftPane}>
-              {console.log("renderSelection subsection 1")}
               <p className="appName">
                 <span className="beldexName">Beldex</span> Bridge
               </p>
@@ -625,24 +610,21 @@ function Swap({ showMessage }) {
                 connectedWalletAddress={connectedWalletAddress}
                 connectedWalletBalance={connectedWalletBalance}
                 selectedWallet={selectedWallet}
-                setAmount={e=>setAmount(e)}
+                setAmount={(e) => setAmount(e)}
                 amount={amount}
                 disconnet={() => {
                   setConnectedWalletAddress("");
                   setConnectedWalletBalance("");
                 }}
               />
-              {console.log("renderSelection subsection 4")}
             </div>
             <Popup
               selectedValue={selectedWallet}
               open={showPopup}
               onClose={(v) => {
                 handlePopupClose(v);
-                console.log("closeConsole2", v);
               }}
             />
-            {console.log("renderSelection subsection 5")}
           </Grid>
         </Grid>
       );
@@ -666,7 +648,6 @@ function Swap({ showMessage }) {
   // Info page
   const renderInfo = useCallback(
     (movedBalance, totalSupply) => {
-      console.log("renderInfo called");
 
       return (
         <Box className={classes.dashBoard}>
@@ -689,13 +670,14 @@ function Swap({ showMessage }) {
 
           <Grid container spacing={2} className={classes.dFlexSpacebw}>
             <Grid item size={{ xs: 12, md: 6 }} className={classes.item}>
-              {console.log("renderInfo subsection 2")}
               <SwapInfo
                 swapType={swapType}
                 swapInfo={swapResult}
                 info={info}
                 selectedWallet={selectedWallet}
-                onRefresh={() => {}} // memoized callback
+                onRefresh={() => {
+                  onRefresh();
+                }} // memoized callback
                 onBack={handleBack} // memoized callback
                 connectToMetaMask={connectToMetaMask} // memoized callback
                 loading={loading}
@@ -705,7 +687,6 @@ function Swap({ showMessage }) {
               />
             </Grid>
             <Grid item size={{ xs: 12, md: 6 }} sx={{ mt: 2 }}>
-              {console.log("renderInfo subsection 3")}
               {renderTransactions()}
             </Grid>
           </Grid>
@@ -713,6 +694,7 @@ function Swap({ showMessage }) {
       );
     },
     [
+      swaps,
       classes,
       swapType,
       swapResult,
@@ -731,11 +713,10 @@ function Swap({ showMessage }) {
   // totalSupply and movedBalance should be read from info/balance selectors.
   const totalSupply = totalbalance?.totalSupply;
   const movedBalance = totalbalance?.movedBalance;
-  console.log("swapselection 6", "page==", page);
   return (
     <Grid container className={classes.root} spacing={2}>
       {page === 0 && renderSelection(totalSupply, movedBalance)}
-      {page === 1 && renderInfo(movedBalance, totalSupply)}
+      {page === 1 && swapResult && renderInfo(movedBalance, totalSupply)}
       <div className={classes.bottomSpacing}></div>
     </Grid>
   );

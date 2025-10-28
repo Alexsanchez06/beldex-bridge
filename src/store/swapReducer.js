@@ -7,12 +7,10 @@ const { useAPIEncryption } = config;
 
 // Utility for encrypted API requests
 const apiRequest = async ({ endpoint, method, body }) => {
-    console.log('apiHit -->',endpoint,method,body)
   let payload = body;
   if (useAPIEncryption && method === 'POST') {
     payload = encrypt(body, endpoint);
   }
-//   console.log('process.env.REACT_APP_APIURL -->',window.env.REACT_APP_APIURL)
   const { data } = await axios({
     // baseURL: process.env.REACT_APP_APIURL,
     baseURL:` http://localhost:8000/`,
@@ -21,7 +19,6 @@ const apiRequest = async ({ endpoint, method, body }) => {
     ...(body && method === 'POST' && { data: payload }),
     ...(body && method === 'GET' && { params: payload }),
   });
-  console.log('apiHit 2 -->',data)
 
   if (data.status === 200 && !data.success) throw new Error(data.result);
   return data.result;
@@ -61,7 +58,7 @@ const initialState = {
   unconfirmedBeldexTxs: [],
   swaps: [],
   swapResult: null,
-  finalizeResult: null,
+  finalizeSwapTokenResult: null,
   transactionInfo: null,
   transactionErrorLog: null,
   error: null,
@@ -82,7 +79,6 @@ const swapSlice = createSlice({
       // Info
       .addCase(getInfo.pending, (state) => { state.loading = true; })
       .addCase(getInfo.fulfilled, (state, action) => {
-        console.log('apiHit getInfo 4 -->',action.payload)
         state.loading = false;
         state.info = action.payload;
       })
@@ -92,7 +88,6 @@ const swapSlice = createSlice({
       })
       // Balance
       .addCase(getBalance.fulfilled, (state, action) => {
-        console.log('apiHit getBalance 6 -->',action.payload,getBalance)
         state.balance = action.payload;
       })
       // Unconfirmed Beldex TXs
@@ -109,7 +104,7 @@ const swapSlice = createSlice({
       })
       // Finalize Swap
       .addCase(finalizeSwapToken.fulfilled, (state, action) => {
-        state.finalizeResult = action.payload;
+        state.finalizeSwapTokenResult = action.payload;
       })
       // Transaction Hash
       .addCase(sendTransactionHash.fulfilled, (state, action) => {

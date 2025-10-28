@@ -43,7 +43,6 @@ function SwapSelection({
 }) {
 
   
-  console.log('swapselection 8(1)')
   const { t } = useTranslation();
   const [address, setAddress] = useState("");
   // const [amount, setAmount] = useState(0);
@@ -56,9 +55,7 @@ function SwapSelection({
 
   const balance = useSelector(selectBalance) || [];
   const dispatch = useDispatch();
-  console.log('swapselection 8')
   useEffect(() => {
-    console.log('swapselection 9')
     if (balance && balance.length > 0) {
       const bal = Number(
         parseFloat(balance[0].movedBalance).toFixed(2)
@@ -79,7 +76,6 @@ function SwapSelection({
       setMovedBalance(bal);
     }
   }, [balance, swapType]);
-  console.log('swapselection 10')
   const handleNext = async () => {
     const isValidAddress = address && address.length > 0;
     setAddressError(!isValidAddress);
@@ -92,7 +88,6 @@ function SwapSelection({
       }
     }
   };
-  console.log('swapselection 11')
   const handleAddressChanged = (event) => {
     const newValue = event.target.value.replace(/[^A-Za-z0-9]/g, "");
     setAddress(newValue);
@@ -146,8 +141,6 @@ function SwapSelection({
     addressType === TYPE.BDX ? t("bdxAddress") : t("bnbAddress");
   const inputPlaceholder = addressType === TYPE.BDX ? "BDX..." : "BDX-BSC...";
   const url = walletCreationUrl["bnb"];
-  console.log('swapselection 11');
-  console.log('connectedWalletAddress  -->',connectedWalletAddress)
   return (
     <Grid2 item xs={12} sx={styles.root}>
       {!connectedWalletAddress ? (
@@ -160,6 +153,7 @@ function SwapSelection({
             borderRadius: "10px",
             width: "100%",
             marginTop: "20px",
+
           }}
         >
           <Box
@@ -167,6 +161,7 @@ function SwapSelection({
               padding: "20px",
               background: "rgb(41,41,57)",
               alignItems: "center",
+              borderRadius: "10px",
             }}
           >
             <Box
@@ -247,7 +242,11 @@ function SwapSelection({
       </Grid2>
 
       <Grid2 item xs={12}>
-        <Input
+        <Input sx={
+          {
+            border:'1px solid white !important',
+          }
+        }
           fullWidth
           label={inputLabel}
           placeholder={inputPlaceholder}

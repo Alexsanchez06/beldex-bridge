@@ -136,7 +136,7 @@ const styles = (theme) => ({
   },
   rightPaneWrapper: {
     width: "70%",
-    height: '615px',
+    minHeight: '440px',
     padding: "25px 20px",
     marginLeft: "auto",
     borderRadius: "30px",

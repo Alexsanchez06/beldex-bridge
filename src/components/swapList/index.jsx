@@ -38,7 +38,6 @@ function SwapList({ swaps }) {
   };
 
   const renderHash = (type, txHash, transferTxHashes, created) => {
-    console.log('type, txHash, transferTxHashes, created -->',type, txHash, transferTxHashes, created)
     const hasTransferHashes =transferTxHashes && transferTxHashes?.length > 0;
     const depositHashType = type === SWAP_TYPE.BDX_TO_BBDX ? TYPE.BDX : TYPE.BNB;
     const transferHashType = type === SWAP_TYPE.BDX_TO_BBDX ? TYPE.BNB : TYPE.BDX;
@@ -103,18 +102,20 @@ function SwapList({ swaps }) {
     );
   };
 
-  const renderSwapItem = ({
-    uuid,
-    type,
-    amount,
-    txHash,
-    transferTxHashes,
-    created,
-    unconfirmed,
-  }) => {
+  const renderSwapItem = (prop) => {
+   const  {
+      uuid,
+      type,
+      amount,
+      txHash,
+      transferTxHashes,
+      created,
+      unconfirmed,
+    }=prop
+   
     const isPending = transferTxHashes && transferTxHashes?.length === 0;
     const depositCurrency = type === SWAP_TYPE.BDX_TO_BBDX ? 'BDX' : 'BDX-BSC';
-    const displayAmount = amount / 1e9;
+    const displayAmount = Number(amount) / 1e9;
 
     let status = 'Completed';
     if (isPending) {
@@ -174,8 +175,7 @@ function SwapList({ swaps }) {
         </Box>
       );
     }
-
-    return swaps.map(renderSwapItem);
+    return swaps.length>0&&swaps.map(item => renderSwapItem(item));
   };
 
   return (

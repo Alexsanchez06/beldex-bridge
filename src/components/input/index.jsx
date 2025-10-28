@@ -52,6 +52,7 @@ function StyledInput({
       <StyledLabel label={label} />
       <OutlinedInput
         id={id}
+        sx={{border:'1px solid #393954',borderRadius:'10px'}}
         placeholder={placeholder}
         fullWidth={fullWidth}
         defaultValue={defaultValue}
