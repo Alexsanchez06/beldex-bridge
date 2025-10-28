@@ -39,13 +39,14 @@ function SwapSelection({
   totalSupply: initialTotalSupply,
   movedBalance: initialMovedBalance,
   info,
+  setAmount,amount
 }) {
 
   
   console.log('swapselection 8(1)')
   const { t } = useTranslation();
   const [address, setAddress] = useState("");
-  const [amount, setAmount] = useState(0);
+  // const [amount, setAmount] = useState(0);
   const [addressError, setAddressError] = useState(false);
   const [swapType, setSwapType] = useState("bdx_to_bbdx");
   const [loginOpen, setLoginOpen] = useState(false);
