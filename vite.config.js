@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 // import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 // import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 // import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
 
@@ -39,6 +38,7 @@ export default defineConfig({
       process: 'process/browser',
       assert: 'assert/',
       util: 'util/',
+      events: 'events'
     },
   },
   define: {

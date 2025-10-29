@@ -18,6 +18,12 @@ import matrixAbi from "../../matrixAbi";
 import styles from "./styles";
 import { makeStyles } from "@mui/styles";
 
+// import EthereumProvider from "@walletconnect/ethereum-provider";
+
+// import WalletKit from '@reown/walletkit';
+// import { Core } from '@walletconnect/core';
+// import * as utils from '@walletconnect/utils';
+
 // Redux thunks & selectors (bring these from your swapSlice)
 import {
   getInfo,
@@ -95,6 +101,10 @@ function Swap({ showMessage }) {
     UnconfirmedTransactions();
   }, [swapResult]);
 
+  useEffect(()=>{
+    onTokenSwapFinalized(finalizeSwapTokenResult)
+  },[finalizeSwapTokenResult])
+
   // Merge unconfirmed & swaps like your original renderTransactions
   const mergedSwaps = useMemo(() => {
     if (swapType !== SWAP_TYPE.BDX_TO_BBDX) return swaps;
@@ -110,8 +120,8 @@ function Swap({ showMessage }) {
       })
     );
     const validSwap = swaps || [];
-    
-  return [...unconfirmedSwaps, ...validSwap];
+
+    return [...unconfirmedSwaps, ...validSwap];
   }, [unconfirmed, swaps, swapType]);
 
   // Wallet connect, transaction logic remains in local functions/useCallback (can add here)
@@ -126,14 +136,35 @@ function Swap({ showMessage }) {
     }
     return false;
   };
-  const connectToMetaMask = async () => {
+
+
   
+  
+  const connectToMetaMask = async () => {
+    // connectWalletConnect()
+    // const wcProvider = await EthereumProvider.init({
+    //   projectId: 'd6e8a543600ce8c35a86597474351aef', // from https://cloud.walletconnect.com
+    //   chains: [56], // 🔹 BSC Mainnet Chain ID
+    //   optionalChains: [97], // (optional) BSC Testnet Chain ID
+    //   showQrModal: true,
+    //   rpcMap: {
+    //     56: "https://bsc-dataseed.binance.org/",
+    //     97: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+    //   },
+    //   metadata: {
+    //     name: "Beldex Bridge",
+    //     description: "Beldex DApp using WalletConnect on BSC",
+    //     url: "https://beldex.io",
+    //     icons: ["https://beldex.io/icon.png"],
+    //   },
+    // });  
+    await wcProvider.enable();
     let mobileView = await mobileCheck();
     const provider = window.ethereum;
     // const binanceChainId = process.env.REACT_APP_CHAINID;
     const binanceChainId = "0x61";
     if (!mobileView && !window.ethereum.isMetaMask) {
-      return props.showMessage(t("MetaMask is not installed."), "error");
+      return showMessage(t("MetaMask is not installed."), "error");
     }
     const web3Obj = new Web3(window.ethereum);
     // alert(web3Obj)
@@ -145,6 +176,10 @@ function Swap({ showMessage }) {
         });
         if (chainId === binanceChainId) {
           console.log("Bravo!, you are on the correct network");
+          showMessage(
+            `Bravo!, you are on the correct network.`,
+            "success"
+          );
         } else {
           try {
             await provider.request({
@@ -156,12 +191,12 @@ function Swap({ showMessage }) {
             //  alert(JSON.stringify(switchError.code))
             // This error code indicates that the chain has not been added to MetaMask.
             if (switchError.code === 4902 || switchError.code === -32603) {
-              if (mobileCheck()) {
-                props.showMessage(
+              // if (mobileCheck()) {
+                showMessage(
                   `Please add the Binance smart chain to your wallet.`,
                   "error"
                 );
-              }
+              // }
               try {
                 await provider.request({
                   method: "wallet_addEthereumChain",
@@ -247,10 +282,7 @@ function Swap({ showMessage }) {
     web3Obj = new Web3(window.ethereum);
     try {
       if (!mobileView && !window.ethereum.isMetaMask) {
-        return props.showMessage(
-          props.t("Trustwallet is not installed."),
-          "error"
-        );
+        return showMessage(t("Trustwallet is not installed."), "error");
       }
       await window.ethereum.enable();
       if (web3Obj) {
@@ -336,42 +368,97 @@ function Swap({ showMessage }) {
     }
     // }
   }
-  const makeTransaction = () => {
-    let amountToWei = amount * 1e9;
-    const options = {
-      from: walletAddress,
-      to: contract._address,
-      data: contract.methods.burn(amountToWei.toString()).encodeABI(),
-      value: 0x0,
-    };
-    web3Obj.eth
-      .sendTransaction(options)
-      .on("confirmation", (confirmationNumber, receipt) => {
-        const timestamp = Math.floor(new Date().getTime() / 1000.0);
-        if (confirmationNumber === 0) {
-          const reqObj = {
-            uuid: swapResult.uuid,
-            amount: amount,
-            timestamp: timestamp,
-            memo: swapResult.memo,
-            hash: receipt.transactionHash,
-          };
-          dispatch(sendTransactionHash(reqObj));
-        }
-      })
-      .on("error", (error) => {
-        dispatch(
-          sendTransactionErrorLog({
-            reqObj: { ...options, error: error?.code ? error : error.message },
-          })
-        );
-        if (error?.code === 4001) {
-          props.showMessage(props.t("transactionSignatureError"), "error");
-        } else {
-          props.showMessage(error, "error");
-        }
-      });
+  // const makeTransaction = () => {
+  //   let amountToWei = amount * 1e9;
+  //   const options = {
+  //     from: walletAddress,
+  //     to: contract._address,
+  //     data: contract.methods.burn(amountToWei.toString()).encodeABI(),
+  //     value: 0x0,
+  //   };
+  //   web3Obj.eth
+  //     .sendTransaction(options)
+  //     .on("confirmation", (confirmationNumber, receipt) => {
+  //       const timestamp = Math.floor(new Date().getTime() / 1000.0);
+  //       if (confirmationNumber === 0) {
+  //         const reqObj = {
+  //           uuid: swapResult.uuid,
+  //           amount: amount,
+  //           timestamp: timestamp,
+  //           memo: swapResult.memo,
+  //           hash: receipt.transactionHash,
+  //         };
+  //         dispatch(sendTransactionHash(reqObj));
+  //       }
+  //     })
+  //     .on("error", (error) => {
+  //       dispatch(
+  //         sendTransactionErrorLog({
+  //           reqObj: { ...options, error: error?.code ? error : error.message },
+  //         })
+  //       );
+  //       console.log('error errorerror',error)
+  //       if (error?.code === 4001) {
+  //         showMessage(t("transactionSignatureError"), "error");
+  //       } else {
+  //         showMessage(error, "error");
+  //       }
+  //     });
+  // };
+
+  const makeTransaction = async () => {
+    try {
+      let amountToWei = amount * 1e9;
+      const options = {
+        from: walletAddress,
+        to: contract._address,
+        data: contract.methods.burn(amountToWei.toString()).encodeABI(),
+        value: 0x0,
+      };
+  
+      web3Obj.eth
+        .sendTransaction(options)
+        .on("confirmation", (confirmationNumber, receipt) => {
+          try {
+            const timestamp = Math.floor(new Date().getTime() / 1000.0);
+            if (confirmationNumber === 0) {
+              const reqObj = {
+                uuid: swapResult.uuid,
+                amount,
+                timestamp,
+                memo: swapResult.memo,
+                hash: receipt.transactionHash,
+              };
+              dispatch(sendTransactionHash(reqObj));
+            }
+          } catch (innerErr) {
+            console.error("Error inside confirmation handler:", innerErr);
+          }
+        })
+        .on("error", (error) => {
+          console.error("Transaction error:", error);
+          dispatch(
+            sendTransactionErrorLog({
+              reqObj: { ...options, error: error?.code ? error : error.message },
+            })
+          );
+          if (error?.code === 4001) {
+            showMessage(t("transactionSignatureError"), "error");
+          } else {
+            showMessage(error?.message || String(error), "error");
+          }
+        });
+    } catch (outerError) {
+      console.error("Error in makeTransaction:", outerError);
+      dispatch(
+        sendTransactionErrorLog({
+          reqObj: { error: outerError?.message || String(outerError) },
+        })
+      );
+      showMessage(t("transactionFailed"), "error");
+    }
   };
+  
   const swapTypeChanged = async (swapType) => {
     setSwapType(swapType);
 
@@ -417,19 +504,32 @@ function Swap({ showMessage }) {
     setConnectedWalletAddress(address);
     setConnectedWalletBalance(currentBal);
   };
-  // const disconnetWallet = async () => {
-  //   await window.ethereum.request({
-  //     method: "wallet_requestPermissions",
-  //     params: [
-  //       {
-  //         eth_accounts: {},
-  //       },
-  //     ],
-  //   });
-  // };
+  const disconnetWallet = async () => {
+    if (window.ethereum) {
+      window.ethereum.on("disconnect", (error) => {
+        console.log("MetaMask disconnected:", error);
+        // Clear your dApp's connection state here as well
+        localStorage.removeItem("connectedAccount");
+        // Optionally, navigate the user to a different page or display a message
+      });
+    }
+    // await window.ethereum.request({
+    //   method: "wallet_requestPermissions",
+    //   params: [
+    //     {
+    //       eth_accounts: {},
+    //     },
+    //   ],
+    // });
+    setConnectedWalletAddress("");
+    setConnectedWalletBalance("");
+
+    
+  };
   const handlePopupClose = (value) => {
     setShowPopup(!showPopup);
     setSelectedWallet(value);
+    console.log("handlePopupClose -->", value);
     if (value === "Binance" || value === "Trust Wallet") {
       if (mobileCheck()) {
         connectToTrustWallet();
@@ -452,7 +552,7 @@ function Swap({ showMessage }) {
       //   });
       //   if (account) connectToMetaMask();
       // }
-   
+
       if (mobileCheck()) {
         connectToMetamaskMobile();
       } else {
@@ -466,9 +566,21 @@ function Swap({ showMessage }) {
     handleFinalizeSwap();
   };
 
-  const handleFinalizeSwap = useCallback(() => {
+  const onTokenSwapFinalized = (transactions) => {
+    if(!transactions) return;
+    const message =
+      transactions?.length === 1
+        ? t("newSwapSuccess", { count: 1 })
+        : t("newSwapSuccess", { count: transactions.length });
+    showMessage(message, "success");
+    setImmediate(() => UnconfirmedTransactions());
+    // setImmediate(() => handleFinalizeSwap());
+  };
+  
+  const handleFinalizeSwap = () => {
+    if(!swapResult)return
     dispatch(finalizeSwapToken({ uuid: swapResult.uuid }));
-  }, [dispatch, swapResult]);
+  };
 
   const UnconfirmedTransactions = () => {
     if (swapType !== SWAP_TYPE.BDX_TO_BBDX) return;
@@ -481,7 +593,7 @@ function Swap({ showMessage }) {
   };
 
   const transactionsInfo = (transaction) => {
-    this.props.showMessage(this.props.t("transactionSuccess"), "success");
+    showMessage(t("transactionSuccess"), "success");
   };
   const onUnconfirmedTransactionsFetched = (transactions) => {
     // setUnconfirmed( transactions);
@@ -492,7 +604,7 @@ function Swap({ showMessage }) {
   const onTokenSwapped = async () => {
     // this.setState({ swapInfo, page: 1 }, async () => {
     // const { walletAddress, swapType, amount, selectedWallet } = this.state;
-   
+
     if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
       const result = await contract.methods
         .balanceOf(connectedWalletAddress)
@@ -500,15 +612,12 @@ function Swap({ showMessage }) {
       const balance = Number(result) / 1e9;
       if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
         if (parseFloat(amount) > parseFloat(balance)) {
-          // this.props.showMessage(
-          //   this.props.t("exceedingBalanceWarning"),
-          //   "error"
-          // );
+          showMessage(t("exceedingBalanceWarning"), "error");
           console.log(t("exceedingBalanceWarning"));
         } else if (parseFloat(amount) > 0) {
           makeTransaction();
         } else {
-          // this.props.showMessage(this.props.t("greaterThanZeroError"), "error");
+          showMessage(t("greaterThanZeroError"), "error");
           console.log(t("greaterThanZeroError"), parseFloat(amount), amount);
         }
       } else {
@@ -516,13 +625,12 @@ function Swap({ showMessage }) {
           `Connect to ${selectedWallet === "" ? "Wallet" : selectedWallet}`
         );
 
-        // this.props.showMessage(
-        //   `Connect to ${selectedWallet === "" ? "Wallet" : selectedWallet}`,
-        //   "error"
-        // );
+        showMessage(
+          `Connect to ${selectedWallet === "" ? "Wallet" : selectedWallet}`,
+          "error"
+        );
       }
     }
-    
 
     // Later, to clear them (e.g., on component unmount or when stopping)
 
@@ -613,8 +721,7 @@ function Swap({ showMessage }) {
                 setAmount={(e) => setAmount(e)}
                 amount={amount}
                 disconnet={() => {
-                  setConnectedWalletAddress("");
-                  setConnectedWalletBalance("");
+                  disconnetWallet();
                 }}
               />
             </div>
@@ -648,7 +755,6 @@ function Swap({ showMessage }) {
   // Info page
   const renderInfo = useCallback(
     (movedBalance, totalSupply) => {
-
       return (
         <Box className={classes.dashBoard}>
           <Typography

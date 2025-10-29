@@ -103,7 +103,9 @@ const swapSlice = createSlice({
         state.swapResult = action.payload;
       })
       // Finalize Swap
+      .addCase(finalizeSwapToken.pending, (state) => { state.loading = true; })
       .addCase(finalizeSwapToken.fulfilled, (state, action) => {
+        state.loading = false;
         state.finalizeSwapTokenResult = action.payload;
       })
       // Transaction Hash

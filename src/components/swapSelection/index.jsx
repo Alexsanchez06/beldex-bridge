@@ -7,19 +7,20 @@ import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import { useTranslation } from "react-i18next";
-import   StyledButton   from '../button';
-import Input from '../input'
+import StyledButton from "../button";
+import Input from "../input";
 import { SWAP_TYPE, TYPE } from "@constants";
 import config from "@config";
 import styles from "./styles";
 import Swaptabs from "./swapTabs";
-import binance from "../popup/binance.png"; 
+import binance from "../popup/binance.png";
 import metamask from "../popup/metamask.png";
+import trustwallet from "../popup/trustWallet.png"
 import { useDispatch, useSelector } from "react-redux";
 
 import { getBalance } from "../../store/swapReducer";
 import { selectBalance } from "../../store/swapSelector";
-
+import CircularProgress from "@mui/material/CircularProgress";
 
 const walletCreationUrl = {
   [TYPE.BDX]: config.beldex.walletCreationUrl,
@@ -39,10 +40,9 @@ function SwapSelection({
   totalSupply: initialTotalSupply,
   movedBalance: initialMovedBalance,
   info,
-  setAmount,amount
+  setAmount,
+  amount,
 }) {
-
-  
   const { t } = useTranslation();
   const [address, setAddress] = useState("");
   // const [amount, setAmount] = useState(0);
@@ -143,6 +143,23 @@ function SwapSelection({
   const url = walletCreationUrl["bnb"];
   return (
     <Grid2 item xs={12} sx={styles.root}>
+      {loading && (
+        <div
+          style={{
+            position: "absolute",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "93%",
+            height: "89%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 9,
+            borderRadius: "10px",
+          }}
+        >
+          <CircularProgress />{" "}
+        </div>
+      )}
       {!connectedWalletAddress ? (
         <button className="connectButton" onClick={connectWalletPopup}>
           Connect Wallet
@@ -153,7 +170,6 @@ function SwapSelection({
             borderRadius: "10px",
             width: "100%",
             marginTop: "20px",
-
           }}
         >
           <Box
@@ -174,7 +190,7 @@ function SwapSelection({
               <Box sx={{ display: "flex", gap: "10px" }}>
                 <Avatar
                   sx={{ width: 24, height: 24 }}
-                  src={selectedWallet === "Binance" ? binance : metamask}
+                  src={selectedWallet === "Binance"  ? binance :selectedWallet==='Trust Wallet'?trustwallet: metamask}
                 />
                 <Typography
                   sx={{
@@ -242,11 +258,10 @@ function SwapSelection({
       </Grid2>
 
       <Grid2 item xs={12}>
-        <Input sx={
-          {
-            border:'1px solid white !important',
-          }
-        }
+        <Input
+          sx={{
+            border: "1px solid white !important",
+          }}
           fullWidth
           label={inputLabel}
           placeholder={inputPlaceholder}
