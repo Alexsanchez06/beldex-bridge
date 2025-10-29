@@ -17,6 +17,7 @@ import Popup from "../popup";
 import matrixAbi from "../../matrixAbi";
 import styles from "./styles";
 import { makeStyles } from "@mui/styles";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // import EthereumProvider from "@walletconnect/ethereum-provider";
 
@@ -42,6 +43,7 @@ import {
   selectSwapLoading,
   selectswapResult,
   selectfinalizeSwapTokenResult,
+  selectTransactionInfo
 } from "../../store/swapSelector";
 
 const currencySymbols = {
@@ -64,6 +66,7 @@ function Swap({ showMessage }) {
   const error = useSelector(selectSwapError);
   const swapResult = useSelector(selectswapResult);
   const finalizeSwapTokenResult = useSelector(selectfinalizeSwapTokenResult);
+  const transactionHashInfo=useSelector(selectTransactionInfo);
 
   let web3Obj = new Web3(window.ethereum);
   let contract = new web3Obj.eth.Contract(
@@ -102,9 +105,24 @@ function Swap({ showMessage }) {
   }, [swapResult]);
 
   useEffect(()=>{
+    console.log('transactionsInfoSuccesstransactionsInfoSuccess')
+    transactionsInfoSuccess()
+    console.log('transactionsInfoSuccesstransactionsInfoSuccess 1')
+
+  },[transactionHashInfo])
+
+  useEffect(()=>{
+    if(!finalizeSwapTokenResult) return;
     onTokenSwapFinalized(finalizeSwapTokenResult)
   },[finalizeSwapTokenResult])
 
+  const transactionsInfoSuccess = () => {
+    console.log('transactionsInfoSuccesstransactionsInfoSuccess 2')
+
+    showMessage(t("transactionSuccess"), "success");
+    console.log('transactionsInfoSuccesstransactionsInfoSuccess 3')
+
+  };
   // Merge unconfirmed & swaps like your original renderTransactions
   const mergedSwaps = useMemo(() => {
     if (swapType !== SWAP_TYPE.BDX_TO_BBDX) return swaps;
@@ -141,6 +159,7 @@ function Swap({ showMessage }) {
   
   
   const connectToMetaMask = async () => {
+    console.log('connectedWalletAddress -->',connectedWalletAddress)
     // connectWalletConnect()
     // const wcProvider = await EthereumProvider.init({
     //   projectId: 'd6e8a543600ce8c35a86597474351aef', // from https://cloud.walletconnect.com
@@ -158,7 +177,7 @@ function Swap({ showMessage }) {
     //     icons: ["https://beldex.io/icon.png"],
     //   },
     // });  
-    await wcProvider.enable();
+    // await wcProvider.enable();
     let mobileView = await mobileCheck();
     const provider = window.ethereum;
     // const binanceChainId = process.env.REACT_APP_CHAINID;
@@ -368,96 +387,51 @@ function Swap({ showMessage }) {
     }
     // }
   }
-  // const makeTransaction = () => {
-  //   let amountToWei = amount * 1e9;
-  //   const options = {
-  //     from: walletAddress,
-  //     to: contract._address,
-  //     data: contract.methods.burn(amountToWei.toString()).encodeABI(),
-  //     value: 0x0,
-  //   };
-  //   web3Obj.eth
-  //     .sendTransaction(options)
-  //     .on("confirmation", (confirmationNumber, receipt) => {
-  //       const timestamp = Math.floor(new Date().getTime() / 1000.0);
-  //       if (confirmationNumber === 0) {
-  //         const reqObj = {
-  //           uuid: swapResult.uuid,
-  //           amount: amount,
-  //           timestamp: timestamp,
-  //           memo: swapResult.memo,
-  //           hash: receipt.transactionHash,
-  //         };
-  //         dispatch(sendTransactionHash(reqObj));
-  //       }
-  //     })
-  //     .on("error", (error) => {
-  //       dispatch(
-  //         sendTransactionErrorLog({
-  //           reqObj: { ...options, error: error?.code ? error : error.message },
-  //         })
-  //       );
-  //       console.log('error errorerror',error)
-  //       if (error?.code === 4001) {
-  //         showMessage(t("transactionSignatureError"), "error");
-  //       } else {
-  //         showMessage(error, "error");
-  //       }
-  //     });
-  // };
+  const makeTransaction = () => {
+    let amountToWei = amount * 1e9;
+    const options = {
+      from: walletAddress,
+      to: contract._address,
+      data: contract.methods.burn(amountToWei.toString()).encodeABI(),
+      value: 0x0,
+    };
+    web3Obj.eth
+      .sendTransaction(options)
+      .on("confirmation", (confirmationNumber, receipt) => {
+        const timestamp = Math.floor(new Date().getTime() / 1000.0);
+        console.log('confirmation -->',confirmationNumber,)
+        console.log('confirmation 1-->',swapResult,)
+        console.log('confirmation 2-->',confirmationNumber.receipt)
 
-  const makeTransaction = async () => {
-    try {
-      let amountToWei = amount * 1e9;
-      const options = {
-        from: walletAddress,
-        to: contract._address,
-        data: contract.methods.burn(amountToWei.toString()).encodeABI(),
-        value: 0x0,
-      };
-  
-      web3Obj.eth
-        .sendTransaction(options)
-        .on("confirmation", (confirmationNumber, receipt) => {
-          try {
-            const timestamp = Math.floor(new Date().getTime() / 1000.0);
-            if (confirmationNumber === 0) {
-              const reqObj = {
-                uuid: swapResult.uuid,
-                amount,
-                timestamp,
-                memo: swapResult.memo,
-                hash: receipt.transactionHash,
-              };
-              dispatch(sendTransactionHash(reqObj));
-            }
-          } catch (innerErr) {
-            console.error("Error inside confirmation handler:", innerErr);
-          }
-        })
-        .on("error", (error) => {
-          console.error("Transaction error:", error);
-          dispatch(
-            sendTransactionErrorLog({
-              reqObj: { ...options, error: error?.code ? error : error.message },
-            })
-          );
-          if (error?.code === 4001) {
-            showMessage(t("transactionSignatureError"), "error");
-          } else {
-            showMessage(error?.message || String(error), "error");
-          }
-        });
-    } catch (outerError) {
-      console.error("Error in makeTransaction:", outerError);
-      dispatch(
-        sendTransactionErrorLog({
-          reqObj: { error: outerError?.message || String(outerError) },
-        })
-      );
-      showMessage(t("transactionFailed"), "error");
-    }
+        
+        // if (confirmationNumber === 0) {
+          const reqObj = {
+            uuid: swapResult.uuid,
+            amount: amount,
+            timestamp: timestamp,
+            memo: swapResult.memo,
+            hash:confirmationNumber.receipt.transactionHash,
+          };
+        console.log('confirmation 3-->',reqObj)
+          
+          dispatch(sendTransactionHash(reqObj));
+        // }
+      })
+      .on("error", (error) => {
+        dispatch(
+          sendTransactionErrorLog({
+            reqObj: { ...options, error: error?.code ? error : error.message },
+          })
+        );
+        console.log('error errorerror',error)
+        if (error?.code === 4001) {
+          showMessage(t("transactionSignatureError"), "error");
+        } else {
+          showMessage(error, "error");
+        }
+      });
   };
+
   
   const swapTypeChanged = async (swapType) => {
     setSwapType(swapType);
@@ -821,6 +795,23 @@ function Swap({ showMessage }) {
   const movedBalance = totalbalance?.movedBalance;
   return (
     <Grid container className={classes.root} spacing={2}>
+      {loading && (
+        <div
+          style={{
+            position: "absolute",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "93%",
+            height: "89%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 9,
+            borderRadius: "10px",
+          }}
+        >
+          <CircularProgress />{" "}
+        </div>
+      )}
       {page === 0 && renderSelection(totalSupply, movedBalance)}
       {page === 1 && swapResult && renderInfo(movedBalance, totalSupply)}
       <div className={classes.bottomSpacing}></div>

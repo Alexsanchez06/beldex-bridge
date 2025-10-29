@@ -7,3 +7,4 @@ export const selectSwapLoading = (state) => state.swap.loading;
 export const selectSwapError = (state) => state.swap.error;
 export const selectswapResult=(state)=>state.swap.swapResult;
 export const selectfinalizeSwapTokenResult=(state)=>state.swap.finalizeSwapTokenResult;
+export const selectTransactionInfo=(state)=>state.swap.transactionInfo

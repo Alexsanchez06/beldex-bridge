@@ -42,6 +42,7 @@ function SwapSelection({
   info,
   setAmount,
   amount,
+  
 }) {
   const { t } = useTranslation();
   const [address, setAddress] = useState("");
