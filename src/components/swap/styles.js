@@ -5,7 +5,6 @@ const styles = (theme) => ({
     [theme.breakpoints.down("sm")]: {
       paddingBottom: "40px",
     },
-    position:'relative',
   },
   item: {
     display: "flex",

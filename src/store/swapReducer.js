@@ -7,13 +7,14 @@ const { useAPIEncryption } = config;
 
 // Utility for encrypted API requests
 const apiRequest = async ({ endpoint, method, body }) => {
+  console.log('confirmation api hit-->',endpoint)
   let payload = body;
   if (useAPIEncryption && method === 'POST') {
     payload = encrypt(body, endpoint);
   }
   const { data } = await axios({
-    // baseURL: process.env.REACT_APP_APIURL,
-    baseURL:` http://localhost:8000/`,
+     baseURL: __BASEAPIURL__,
+    // baseURL:` http://localhost:8000/`,
     url: endpoint,
     method: method.toLowerCase(),
     ...(body && method === 'POST' && { data: payload }),

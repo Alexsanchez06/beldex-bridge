@@ -145,23 +145,6 @@ function SwapSelection({
   const url = walletCreationUrl["bnb"];
   return (
     <Grid2 item xs={12} sx={styles.root}>
-      {loading && (
-        <div
-          style={{
-            position: "absolute",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "93%",
-            height: "89%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 9,
-            borderRadius: "10px",
-          }}
-        >
-          <CircularProgress />{" "}
-        </div>
-      )}
       {!connectedWalletAddress ? (
         <button className="connectButton" onClick={connectWalletPopup}>
           Connect Wallet

@@ -7,8 +7,8 @@ import { Snackbar, Swap, ImageLoader } from "@components";
 import theme from "@theme";
 import { useDispatch, useSelector } from "react-redux";
 import {getBalance} from './store/swapReducer';
-import {selectBalance}from './store/swapSelector'
-
+import {selectBalance,selectSwapLoading}from './store/swapSelector'
+import CircularProgress from "@mui/material/CircularProgress";
 
 export default function App() {
   const dispatch=useDispatch();
@@ -21,7 +21,7 @@ export default function App() {
   // const [balance, setBalance] = useState("");
 
   const balance=useSelector(selectBalance);
-
+  const loading = useSelector(selectSwapLoading);
   useEffect(() => {
     // Fetch balance on mount
     dispatch(getBalance());
@@ -110,6 +110,7 @@ export default function App() {
       <CssBaseline />
       <BackgroundImage />
       <div id="content">
+        <Loader loading={loading} />
         <TitleImage />
         <div className="d-flex-center">
           <Swap
@@ -127,4 +128,24 @@ export default function App() {
       </div>
     </ThemeProvider>
   );
+}
+
+export const Loader=(props)=>{
+ return props.loading && (
+    <div
+      style={{
+        position: "absolute",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+        height: "100%",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: 9,
+        borderRadius: "10px",
+      }}
+    >
+      <CircularProgress />{" "}
+    </div>
+  )
 }
