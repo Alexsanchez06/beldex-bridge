@@ -18,7 +18,6 @@ import wbdxAbi from "../../matrixAbi";
 import styles from "./styles";
 import { makeStyles } from "@mui/styles";
 
-
 import WalletConnectProvider from "@walletconnect/ethereum-provider";
 
 // import WalletKit from '@reown/walletkit';
@@ -43,7 +42,7 @@ import {
   selectSwapLoading,
   selectswapResult,
   selectfinalizeSwapTokenResult,
-  selectTransactionInfo
+  selectTransactionInfo,
 } from "../../store/swapSelector";
 import { switchChain } from "viem/actions";
 
@@ -67,7 +66,7 @@ function Swap({ showMessage }) {
   const error = useSelector(selectSwapError);
   const swapResult = useSelector(selectswapResult);
   const finalizeSwapTokenResult = useSelector(selectfinalizeSwapTokenResult);
-  const transactionHashInfo=useSelector(selectTransactionInfo);
+  const transactionHashInfo = useSelector(selectTransactionInfo);
 
   let web3Obj = new Web3(window.ethereum);
   let contract = new web3Obj.eth.Contract(
@@ -75,7 +74,6 @@ function Swap({ showMessage }) {
     __CONTRACT_ADDR__
     // "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
   );
-
 
   // Local UI/wallet state
   const [walletAddress, setWalletAddress] = useState("");
@@ -103,21 +101,21 @@ function Swap({ showMessage }) {
     }
   }, []);
   useEffect(() => {
-    if(!swapResult) return
+    if (!swapResult) return;
     onTokenSwapped();
     sentGetSwap();
     UnconfirmedTransactions();
   }, [swapResult]);
 
-  useEffect(()=>{
-    if(!transactionHashInfo) return;
-    transactionsInfoSuccess()
-  },[transactionHashInfo])
+  useEffect(() => {
+    if (!transactionHashInfo) return;
+    transactionsInfoSuccess();
+  }, [transactionHashInfo]);
 
-  useEffect(()=>{
-    if(!finalizeSwapTokenResult) return;
-    onTokenSwapFinalized(finalizeSwapTokenResult)
-  },[finalizeSwapTokenResult])
+  useEffect(() => {
+    if (!finalizeSwapTokenResult) return;
+    onTokenSwapFinalized(finalizeSwapTokenResult);
+  }, [finalizeSwapTokenResult]);
 
   const transactionsInfoSuccess = () => {
     showMessage(t("transactionSuccess"), "success");
@@ -199,30 +197,34 @@ function Swap({ showMessage }) {
     try {
       const wcProvider = await WalletConnectProvider.init({
         projectId: "d6e8a543600ce8c35a86597474351aef", // from https://cloud.walletconnect.com
-        //   chains: [97], // BSC Testnet chainId
-        // showQrModal: true,
-        // // optionalChains: [97], // Optional: BSC mainnet
-        // rpcMap: {
-        //   97: "https://bsc-testnet-rpc.publicnode.com"
-        // 97: "https://bsc-testnet.blockpi.network/v1/rpc/public", // BSC Testnet RPC
-        // 97:"https://data-seed-prebsc-1-s1.binance.org:8545"
-        // },
-
-        chains: [56], // BSC Testnet
+        chains: [97], // BSC Testnet chainId
         showQrModal: true,
+        // optionalChains: [97], // Optional: BSC mainnet
         rpcMap: {
-          56: "https://bsc-dataseed.binance.org/",
+          97: "https://bsc-testnet-rpc.publicnode.com",
+          // 97: "https://bsc-testnet.blockpi.network/v1/rpc/public", // BSC Testnet RPC
+          // 97:"https://data-seed-prebsc-1-s1.binance.org:8545"
         },
+
+        // chains: [56], // BSC Testnet
+        // showQrModal: true,
+        // rpcMap: {
+        //   56: "https://bsc-dataseed.binance.org/",
+        // },
       });
-      const binanceChainId = "56";
+      const binanceChainId = "97";
       await wcProvider.enable();
       setProvider(wcProvider);
       const web3 = await new Web3(wcProvider);
       const accounts = await web3.eth.getAccounts();
       const currentChainId = await web3.eth.getChainId();
       console.log("currentChainId:", currentChainId, typeof currentChainId);
-      console.log("BigInt:", BigInt(56));
-      if (currentChainId !== BigInt(56)) {
+      console.log("BigInt:", BigInt(97));
+      console.log(
+        "currentChainId !== BigInt(binanceChainId):",
+        currentChainId !== BigInt(binanceChainId)
+      );
+      if (currentChainId !== BigInt(binanceChainId)) {
         console.log("⚠️ Wrong network! Switching to BSC Testnet...");
         await switchToBscChain();
       } else {
@@ -240,41 +242,41 @@ function Swap({ showMessage }) {
   };
 
   const connectToMetaMask = async () => {
-    console.log('connectToMetaMask 1-->',)
+    console.log("connectToMetaMask 1-->");
     let mobileView = await mobileCheck();
     // const provider = window.ethereum;
-    const binanceChainId =  __CHAINID__;
+    const binanceChainId = __CHAINID__;
     // const binanceChainId = "0x61";
-    console.log('connectToMetaMask binanceChainId-->',binanceChainId)
+    console.log("connectToMetaMask binanceChainId-->", binanceChainId);
     if (!mobileView && !window.ethereum.isMetaMask) {
       return showMessage(t("MetaMask is not installed."), "error");
     }
     const web3Obj = new Web3(window.ethereum);
-    console.log('connectToMetaMask web3Obj[0]-->',)
+    console.log("connectToMetaMask web3Obj[0]-->");
 
     // alert(web3Obj)
     try {
-    console.log('connectToMetaMask before enable-->',)
+      console.log("connectToMetaMask before enable-->");
 
       window.ethereum.enable();
-    console.log('connectToMetaMask after enable-->',)
+      console.log("connectToMetaMask after enable-->");
 
       if (web3Obj) {
         const chainId = await window.ethereum.request({
           method: "eth_chainId",
         });
-        console.log("chaild id :",chainId)
+        console.log("chaild id :", chainId);
         if (chainId === binanceChainId) {
           showMessage(`Bravo!, you are on the correct network.`, "success");
         } else {
           await switchToBscChain();
         }
-        console.log("connectToMetaMask before eth_requestAccounts :",)
+        console.log("connectToMetaMask before eth_requestAccounts :");
 
         const account = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
-        console.log('connectToMetaMask account[0]-->',account[0])
+        console.log("connectToMetaMask account[0]-->", account[0]);
         const address = account[0] || null;
         setWalletAddress(address);
         getBalance(address);
@@ -376,10 +378,7 @@ function Swap({ showMessage }) {
           }
         }
         getBalance(address);
-        contract = new web3Obj.eth.Contract(
-          matrixAbi.abi,
-          __CONTRACT_ADDR__
-        );
+        contract = new web3Obj.eth.Contract(matrixAbi.abi, __CONTRACT_ADDR__);
         setWalletAddress(mobileView ? address[0] : address);
         window.BinanceChain.on("accountsChanged", async (accounts) => {
           const address = accounts[0] || null;
@@ -418,64 +417,131 @@ function Swap({ showMessage }) {
     }
     // }
   }
-  const makeTransaction = () => {
-    let amountToWei = amount * 1e9;
-    const options = {
-      from: walletAddress,
-      to: contract._address,
-      data: contract.methods.burn(amountToWei.toString()).encodeABI(),
-      value: 0x0,
-    };
-    web3Obj.eth
-      .sendTransaction(options)
-      .on("confirmation", (confirmationNumber, receipt) => {
-        const timestamp = Math.floor(new Date().getTime() / 1000.0);
-        console.log('confirmation -->',confirmationNumber,)
-        console.log('confirmation swapResult 1-->',swapResult,)
-        console.log('confirmation receipt 2-->',confirmationNumber.receipt)
+  const makeTransaction = async () => {
+    try {
+      let amountToWei = amount * 1e9;
+      // let options;
+      if (selectedWallet == "WalletConnect") {
+        const web3 = new Web3(provider);
+        // const currentChainId = await web3.eth.getChainId();
+        // const accounts = await web3.eth.getAccounts();
+        // const weiBalance = await web3.eth.getBalance(accounts[0]);
 
-        
-        // if (confirmationNumber === 0) {
-          const reqObj = {
-            uuid: swapResult.uuid,
-            amount: amount,
-            timestamp: timestamp,
-            memo: swapResult.memo,
-            hash:confirmationNumber.receipt.transactionHash,
-          };          
-          dispatch(sendTransactionHash(reqObj));
-        // }
-      })
-      .on("error", (error) => {
-        dispatch(
-          sendTransactionErrorLog({
-            reqObj: { ...options, error: error?.code ? error : error.message },
+        const contract = await new web3.eth.Contract(
+          // wbdxAbi.abi,
+          // "0x90bbdDbF3223363898065b9C736e2B86C655762b"
+          matrixAbi.abi,
+          "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
+        ); // const tx = contract.methods.burn(transferAmount.toString());
+        const tx = contract.methods.transfer(walletAddress, amountToWei);
+
+        let options = {
+          from: walletAddress,
+          to: contract._address,
+          data: tx.encodeABI(),
+          value: 0x0,
+        };
+        const timestamp = Math.floor(new Date().getTime() / 1000.0);
+        web3.eth
+          .sendTransaction(options)
+          .on("transactionHash", (hash) => {
+            console.log("✅ Transaction hash:", hash);
+            const reqObj = {
+              uuid: swapResult.uuid,
+              amount,
+              timestamp,
+              memo: swapResult.memo,
+              hash: hash,
+            };
+            console.log("reqObj:", reqObj);
+            dispatch(sendTransactionHash(reqObj));
           })
-        );
-        console.log('error errorerror',error)
-        if (error?.code === 4001) {
-          showMessage(t("transactionSignatureError"), "error");
-        } else {
-          showMessage(error, "error");
-        }
-      });
+          .on("confirmation", (confirmationNumber) => {
+            console.log("confirmationNumber:", confirmationNumber);
+            const reqObj = {
+              uuid: swapResult.uuid,
+              amount,
+              timestamp,
+              memo: swapResult.memo,
+              hash: confirmationNumber.receipt.transactionHash,
+            };
+            console.log("reqObj:", reqObj);
+            dispatch(sendTransactionHash(reqObj));
+          })
+          .on("error", (error) => {
+            console.log("errnwofiiorrr:", error);
+          });
+
+        return;
+      } else {
+        let options = {
+          from: walletAddress,
+          to: contract._address,
+          data: contract.methods.burn(amountToWei.toString()).encodeABI(),
+          value: 0x0,
+        };
+        web3Obj.eth
+          .sendTransaction(options)
+          .on("confirmation", (confirmationNumber, receipt) => {
+            try {
+              const timestamp = Math.floor(new Date().getTime() / 1000.0);
+              // if (confirmationNumber === 0) {
+              const reqObj = {
+                uuid: swapResult.uuid,
+                amount,
+                timestamp,
+                memo: swapResult.memo,
+                hash: confirmationNumber.receipt.transactionHash,
+              };
+              console.log("meta swap:", swapResult);
+              dispatch(sendTransactionHash(reqObj));
+              // }
+            } catch (innerErr) {
+              console.error("Error inside confirmation handler:", innerErr);
+            }
+          })
+          .on("error", (error) => {
+            console.error("Transaction error:", error);
+            dispatch(
+              sendTransactionErrorLog({
+                reqObj: {
+                  ...options,
+                  error: error?.code ? error : error.message,
+                },
+              })
+            );
+            if (error?.code === 4001) {
+              showMessage(t("transactionSignatureError"), "error");
+            } else {
+              showMessage(error?.message || String(error), "error");
+            }
+          });
+        return;
+      }
+    } catch (outerError) {
+      console.error("Error in makeTransaction:", outerError);
+      dispatch(
+        sendTransactionErrorLog({
+          reqObj: { error: outerError?.message || String(outerError) },
+        })
+      );
+      showMessage(t("transactionFailed"), "error");
+    }
   };
 
-  
   const swapTypeChanged = async (swapType) => {
     setSwapType(swapType);
-    console.log('walletAddress -->',walletAddress)
+    console.log("walletAddress -->", walletAddress);
 
-      if (swapType === SWAP_TYPE.BBDX_TO_BDX) {
-        // if (walletAddress === "" && window.innerWidth > 720) {
-        if (mobileCheck()) {
-          detectAndConnectMobileWallet();
-        } else if (walletAddress === "") {
-          // if (walletAddress === "")
-          setShowPopup(!showPopup);
-        }
+    if (swapType === SWAP_TYPE.BBDX_TO_BDX) {
+      // if (walletAddress === "" && window.innerWidth > 720) {
+      if (mobileCheck()) {
+        detectAndConnectMobileWallet();
+      } else if (walletAddress === "") {
+        // if (walletAddress === "")
+        setShowPopup(!showPopup);
       }
-  
+    }
   };
   const detectAndConnectMobileWallet = async () => {
     const isMetaMaskMobile =
@@ -497,11 +563,11 @@ function Swap({ showMessage }) {
     // const web3Obj = new Web3(window.ethereum);
     //   const balance = await web3Obj.eth.getBalance(address, (err, wei) => { });
     const web3 = new Web3(window.ethereum);
-    console.log('connectToMetaMask 2 getBalance[0]-->',address)
+    console.log("connectToMetaMask 2 getBalance[0]-->", address);
 
     // Get balance in Wei
     const balance = await web3.eth.getBalance(address);
-    console.log('connectToMetaMask 2 balance[0]-->',balance)
+    console.log("connectToMetaMask 2 balance[0]-->", balance);
     // const result = await contract.methods
     //       .balanceOf(walletAddress)
     //       .call();
@@ -534,8 +600,6 @@ function Swap({ showMessage }) {
     // });
     setConnectedWalletAddress("");
     setConnectedWalletBalance("");
-
-    
   };
   const handlePopupClose = (value) => {
     setShowPopup(!showPopup);
@@ -580,7 +644,7 @@ function Swap({ showMessage }) {
   };
 
   const onTokenSwapFinalized = (transactions) => {
-    if(!transactions) return;
+    if (!transactions) return;
     const message =
       transactions?.length === 1
         ? t("newSwapSuccess", { count: 1 })
@@ -589,9 +653,9 @@ function Swap({ showMessage }) {
     setImmediate(() => UnconfirmedTransactions());
     // setImmediate(() => handleFinalizeSwap());
   };
-  
+
   const handleFinalizeSwap = () => {
-    if(!swapResult)return
+    if (!swapResult) return;
     dispatch(finalizeSwapToken({ uuid: swapResult.uuid }));
   };
 
@@ -623,15 +687,53 @@ function Swap({ showMessage }) {
     }
 
     if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
-      const result = await contract.methods
-        .balanceOf(connectedWalletAddress)
-        .call();
-      const balance = Number(result) / 1e9;
+      console.log("which wallet connect:", selectedWallet);
+      // const result = await contract.methods
+      //   .balanceOf(connectedWalletAddress)
+      //   .call();
+      // const balance = Number(result) / 1e9;
+      let balance;
+      if (selectedWallet && selectedWallet == "WalletConnect") {
+        console.log("wallet connect..");
+        const web3 = new Web3(provider);
+        const currentChainId = await web3.eth.getChainId();
+        console.log("currentChainId:retryIfWrongNetwork", currentChainId);
+
+        const accounts = await web3.eth.getAccounts();
+        console.log("accounts::", accounts[0]);
+
+        const weiBalance = await web3.eth.getBalance(accounts[0]);
+        console.log("weiBalance:", weiBalance);
+        console.log(
+          "baln:",
+          parseFloat(web3.utils.fromWei(weiBalance, "ether"))
+        );
+        const contract = await new web3.eth.Contract(
+          // wbdxAbi.abi,
+          // "0x90bbdDbF3223363898065b9C736e2B86C655762b"
+          matrixAbi.abi,
+          "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
+        );
+        console.log("contract:", contract);
+        const result = await contract.methods
+          .balanceOf(connectedWalletAddress)
+          .call();
+        console.log("tokenBAL:", result);
+        const balance = result.toString() / 1e9;
+        console.log("balance:", balance);
+        console.log("contract._address:", contract._address);
+      } else {
+        const result = await contract.methods
+          .balanceOf(connectedWalletAddress)
+          .call();
+        balance = Number(result) / 1e9;
+      }
       if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
         if (parseFloat(amount) > parseFloat(balance)) {
           showMessage(t("exceedingBalanceWarning"), "error");
           console.log(t("exceedingBalanceWarning"));
         } else if (parseFloat(amount) > 0) {
+          console.log("make payment");
           makeTransaction();
         } else {
           showMessage(t("greaterThanZeroError"), "error");
@@ -670,7 +772,6 @@ function Swap({ showMessage }) {
     // Gas check logic as before...
     dispatch(swapToken({ type: swapType, address: selAddress }));
     // onTokenSwapped();
-    
   };
 
   // For rendering the transaction list
@@ -770,67 +871,64 @@ function Swap({ showMessage }) {
   );
 
   // Info page
-  const renderInfo = useCallback(
-    () => {
-      return (
-        <Box className={classes.dashBoard}>
-          <Typography
-            sx={{ cursor: "pointer" }}
-            className={classes.backBox}
-            onClick={() => window.location.reload()}
+  const renderInfo = useCallback(() => {
+    return (
+      <Box className={classes.dashBoard}>
+        <Typography
+          sx={{ cursor: "pointer" }}
+          className={classes.backBox}
+          onClick={() => window.location.reload()}
+        >
+          {/* SVG left arrow */}
+          <svg
+            width="20"
+            height="20"
+            className={classes.backImg}
+            viewBox="0 0 24 24"
           >
-            {/* SVG left arrow */}
-            <svg
-              width="20"
-              height="20"
-              className={classes.backImg}
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 0.333344C5.55641 0.333344 0.333374 5.55638 0.333374 12C0.333374 18.4436 5.55641 23.6667 12 23.6667C18.4437 23.6667 23.6667 18.4436 23.6667 12C23.6667 5.55638 18.4437 0.333344 12 0.333344ZM16.6667 13.1667H10.1498L12 15.0169C12.455 15.4719 12.455 16.2117 12 16.6667C11.5451 17.1216 10.8053 17.1216 10.3503 16.6667L6.5085 12.8249C6.05239 12.3688 6.05239 11.6301 6.5085 11.1751L10.3503 7.33334C10.8053 6.87837 11.5451 6.87837 12 7.33334C12.455 7.78831 12.455 8.52811 12 8.98308L10.1498 10.8333H16.6667C17.3108 10.8333 17.8334 11.3559 17.8334 12C17.8334 12.6441 17.3108 13.1667 16.6667 13.1667Z" />
-            </svg>
-            <Typography  className={classes.backTxt}>Back</Typography>
-          </Typography>
+            <path d="M12 0.333344C5.55641 0.333344 0.333374 5.55638 0.333374 12C0.333374 18.4436 5.55641 23.6667 12 23.6667C18.4437 23.6667 23.6667 18.4436 23.6667 12C23.6667 5.55638 18.4437 0.333344 12 0.333344ZM16.6667 13.1667H10.1498L12 15.0169C12.455 15.4719 12.455 16.2117 12 16.6667C11.5451 17.1216 10.8053 17.1216 10.3503 16.6667L6.5085 12.8249C6.05239 12.3688 6.05239 11.6301 6.5085 11.1751L10.3503 7.33334C10.8053 6.87837 11.5451 6.87837 12 7.33334C12.455 7.78831 12.455 8.52811 12 8.98308L10.1498 10.8333H16.6667C17.3108 10.8333 17.8334 11.3559 17.8334 12C17.8334 12.6441 17.3108 13.1667 16.6667 13.1667Z" />
+          </svg>
+          <Typography className={classes.backTxt}>Back</Typography>
+        </Typography>
 
-          <Grid container spacing={2} className={classes.dFlexSpacebw}>
-            <Grid item size={{ xs: 12, md: 6 }} className={classes.item}>
-              <SwapInfo
-                swapType={swapType}
-                swapInfo={swapResult}
-                info={info}
-                selectedWallet={selectedWallet}
-                onRefresh={() => {
-                  onRefresh();
-                }} // memoized callback
-                onBack={handleBack} // memoized callback
-                connectToMetaMask={connectToMetaMask} // memoized callback
-                loading={loading}
-                walletConnected={
-                  selectedWallet === "Binance" ? walletConnBin : walletConnMeta
-                }
-              />
-            </Grid>
-            <Grid item size={{ xs: 12, md: 6 }} sx={{ mt: 2 }}>
-              {renderTransactions()}
-            </Grid>
+        <Grid container spacing={2} className={classes.dFlexSpacebw}>
+          <Grid item size={{ xs: 12, md: 6 }} className={classes.item}>
+            <SwapInfo
+              swapType={swapType}
+              swapInfo={swapResult}
+              info={info}
+              selectedWallet={selectedWallet}
+              onRefresh={() => {
+                onRefresh();
+              }} // memoized callback
+              onBack={handleBack} // memoized callback
+              connectToMetaMask={connectToMetaMask} // memoized callback
+              loading={loading}
+              walletConnected={
+                selectedWallet === "Binance" ? walletConnBin : walletConnMeta
+              }
+            />
           </Grid>
-        </Box>
-      );
-    },
-    [
-      swaps,
-      classes,
-      swapType,
-      swapResult,
-      info,
-      selectedWallet,
-      loading,
-      walletConnBin,
-      walletConnMeta,
-      handleBack,
-      connectToMetaMask,
-      renderTransactions,
-    ]
-  );
+          <Grid item size={{ xs: 12, md: 6 }} sx={{ mt: 2 }}>
+            {renderTransactions()}
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  }, [
+    swaps,
+    classes,
+    swapType,
+    swapResult,
+    info,
+    selectedWallet,
+    loading,
+    walletConnBin,
+    walletConnMeta,
+    handleBack,
+    connectToMetaMask,
+    renderTransactions,
+  ]);
 
   // Main render
   // totalSupply and movedBalance should be read from info/balance selectors.
@@ -838,7 +936,6 @@ function Swap({ showMessage }) {
   const movedBalance = totalbalance?.movedBalance;
   return (
     <Grid container className={classes.root} spacing={2}>
-      
       {page === 0 && renderSelection(totalSupply, movedBalance)}
       {page === 1 && renderInfo()}
       <div className={classes.bottomSpacing}></div>
