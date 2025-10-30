@@ -15,11 +15,12 @@ import SwapInfo from "../swapInfo";
 import SwapList from "../swapList";
 import Popup from "../popup";
 import matrixAbi from "../../matrixAbi";
+import wbdxAbi from "../../matrixAbi";
 import styles from "./styles";
 import { makeStyles } from "@mui/styles";
 import CircularProgress from "@mui/material/CircularProgress";
 
-// import EthereumProvider from "@walletconnect/ethereum-provider";
+import WalletConnectProvider from "@walletconnect/ethereum-provider";
 
 // import WalletKit from '@reown/walletkit';
 // import { Core } from '@walletconnect/core';
@@ -45,6 +46,7 @@ import {
   selectfinalizeSwapTokenResult,
   selectTransactionInfo
 } from "../../store/swapSelector";
+import { switchChain } from "viem/actions";
 
 const currencySymbols = {
   [TYPE.BDX]: "BDX",
@@ -88,6 +90,7 @@ function Swap({ showMessage }) {
   const [walletConnMeta, setWalletConnMeta] = useState(false);
   const [connectedWalletAddress, setConnectedWalletAddress] = useState("");
   const [connectedWalletBalance, setConnectedWalletBalance] = useState("");
+  const [provider, setProvider] = useState(null);
   const handleBack = useCallback(() => setPage(0), [setPage]);
 
   useEffect(() => {
@@ -100,6 +103,7 @@ function Swap({ showMessage }) {
     }
   }, []);
   useEffect(() => {
+    onTokenSwapped();
     sentGetSwap();
     UnconfirmedTransactions();
   }, [swapResult]);
@@ -155,29 +159,93 @@ function Swap({ showMessage }) {
     return false;
   };
 
+  const switchToBscChain = async () => {
+    try {
+      await provider.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: binanceChainId }],
+      });
+    } catch (switchError) {
+      console.log("switchError ::", switchError);
+      //  alert(JSON.stringify(switchError.code))
+      // This error code indicates that the chain has not been added to MetaMask.
+      if (switchError.code === 4902 || switchError.code === -32603) {
+        // if (mobileCheck()) {
+        showMessage(
+          `Please add the Binance smart chain to your wallet.`,
+          "error"
+        );
+        // }
+        try {
+          await provider.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: binanceChainId,
+                chainName: "BNB Chain Testnet",
+                rpcUrls: ["https://data-seed-prebsc-1-s1.bnbchain.org:8545"],
+                blockExplorerUrls: ["https://testnet.bscscan.com"],
+                nativeCurrency: {
+                  symbol: "tBNB", // 2-6 characters long
+                  decimals: 18,
+                },
+              },
+            ],
+          });
+        } catch (addError) {
+          // handle "add" error
+          console.log("error:", addError);
+        }
+      }
+    }
+  };
 
-  
-  
+  const connectTowalletConnect = async () => {
+    try {
+      const wcProvider = await WalletConnectProvider.init({
+        projectId: "d6e8a543600ce8c35a86597474351aef", // from https://cloud.walletconnect.com
+        //   chains: [97], // BSC Testnet chainId
+        // showQrModal: true,
+        // // optionalChains: [97], // Optional: BSC mainnet
+        // rpcMap: {
+        //   97: "https://bsc-testnet-rpc.publicnode.com"
+        // 97: "https://bsc-testnet.blockpi.network/v1/rpc/public", // BSC Testnet RPC
+        // 97:"https://data-seed-prebsc-1-s1.binance.org:8545"
+        // },
+
+        chains: [56], // BSC Testnet
+        showQrModal: true,
+        rpcMap: {
+          56: "https://bsc-dataseed.binance.org/",
+        },
+      });
+      const binanceChainId = "56";
+      await wcProvider.enable();
+      setProvider(wcProvider);
+      const web3 = await new Web3(wcProvider);
+      const accounts = await web3.eth.getAccounts();
+      const currentChainId = await web3.eth.getChainId();
+      console.log("currentChainId:", currentChainId, typeof currentChainId);
+      console.log("BigInt:", BigInt(56));
+      if (currentChainId !== BigInt(56)) {
+        console.log("⚠️ Wrong network! Switching to BSC Testnet...");
+        await switchToBscChain();
+      } else {
+        console.log("✅ Connected to BSC Testnet");
+      }
+      const weiBalance = await web3.eth.getBalance(accounts[0]);
+      setWalletAddress(accounts[0]);
+      setConnectedWalletAddress(accounts[0]);
+      setConnectedWalletBalance(
+        parseFloat(web3.utils.fromWei(weiBalance, "ether"))
+      );
+    } catch (err) {
+      console.log("errorr::", err);
+    }
+  };
+
   const connectToMetaMask = async () => {
-    console.log('connectedWalletAddress -->',connectedWalletAddress)
-    // connectWalletConnect()
-    // const wcProvider = await EthereumProvider.init({
-    //   projectId: 'd6e8a543600ce8c35a86597474351aef', // from https://cloud.walletconnect.com
-    //   chains: [56], // 🔹 BSC Mainnet Chain ID
-    //   optionalChains: [97], // (optional) BSC Testnet Chain ID
-    //   showQrModal: true,
-    //   rpcMap: {
-    //     56: "https://bsc-dataseed.binance.org/",
-    //     97: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-    //   },
-    //   metadata: {
-    //     name: "Beldex Bridge",
-    //     description: "Beldex DApp using WalletConnect on BSC",
-    //     url: "https://beldex.io",
-    //     icons: ["https://beldex.io/icon.png"],
-    //   },
-    // });  
-    // await wcProvider.enable();
+
     let mobileView = await mobileCheck();
     const provider = window.ethereum;
     // const binanceChainId = process.env.REACT_APP_CHAINID;
@@ -193,53 +261,11 @@ function Swap({ showMessage }) {
         const chainId = await window.ethereum.request({
           method: "eth_chainId",
         });
+        console.log("chaild id :",chainId)
         if (chainId === binanceChainId) {
-          console.log("Bravo!, you are on the correct network");
-          showMessage(
-            `Bravo!, you are on the correct network.`,
-            "success"
-          );
+          showMessage(`Bravo!, you are on the correct network.`, "success");
         } else {
-          try {
-            await provider.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: binanceChainId }],
-            });
-          } catch (switchError) {
-            console.log("switchError ::", switchError);
-            //  alert(JSON.stringify(switchError.code))
-            // This error code indicates that the chain has not been added to MetaMask.
-            if (switchError.code === 4902 || switchError.code === -32603) {
-              // if (mobileCheck()) {
-                showMessage(
-                  `Please add the Binance smart chain to your wallet.`,
-                  "error"
-                );
-              // }
-              try {
-                await provider.request({
-                  method: "wallet_addEthereumChain",
-                  params: [
-                    {
-                      chainId: binanceChainId,
-                      chainName: "BNB Chain Testnet",
-                      rpcUrls: [
-                        "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
-                      ],
-                      blockExplorerUrls: ["https://testnet.bscscan.com"],
-                      nativeCurrency: {
-                        symbol: "tBNB", // 2-6 characters long
-                        decimals: 18,
-                      },
-                    },
-                  ],
-                });
-              } catch (addError) {
-                // handle "add" error
-                console.log("error:", addError);
-              }
-            }
-          }
+          await switchToBscChain();
         }
         const account = await window.ethereum.request({
           method: "eth_requestAccounts",
@@ -387,52 +413,156 @@ function Swap({ showMessage }) {
     }
     // }
   }
-  const makeTransaction = () => {
-    let amountToWei = amount * 1e9;
-    const options = {
-      from: walletAddress,
-      to: contract._address,
-      data: contract.methods.burn(amountToWei.toString()).encodeABI(),
-      value: 0x0,
-    };
-    web3Obj.eth
-      .sendTransaction(options)
-      .on("confirmation", (confirmationNumber, receipt) => {
-        const timestamp = Math.floor(new Date().getTime() / 1000.0);
-        console.log('confirmation -->',confirmationNumber,)
-        console.log('confirmation 1-->',swapResult,)
-        console.log('confirmation 2-->',confirmationNumber.receipt)
+  // const makeTransaction = () => {
+  //   let amountToWei = amount * 1e9;
+  //   const options = {
+  //     from: walletAddress,
+  //     to: contract._address,
+  //     data: contract.methods.burn(amountToWei.toString()).encodeABI(),
+  //     value: 0x0,
+  //   };
+  //   web3Obj.eth
+  //     .sendTransaction(options)
+  //     .on("confirmation", (confirmationNumber, receipt) => {
+  //       const timestamp = Math.floor(new Date().getTime() / 1000.0);
+  //       console.log('confirmation -->',confirmationNumber,)
+  //       console.log('confirmation 1-->',swapResult,)
+  //       console.log('confirmation 2-->',confirmationNumber.receipt)
 
         
-        // if (confirmationNumber === 0) {
-          const reqObj = {
-            uuid: swapResult.uuid,
-            amount: amount,
-            timestamp: timestamp,
-            memo: swapResult.memo,
-            hash:confirmationNumber.receipt.transactionHash,
-          };
-        console.log('confirmation 3-->',reqObj)
+  //       // if (confirmationNumber === 0) {
+  //         const reqObj = {
+  //           uuid: swapResult.uuid,
+  //           amount: amount,
+  //           timestamp: timestamp,
+  //           memo: swapResult.memo,
+  //           hash:confirmationNumber.receipt.transactionHash,
+  //         };
+  //       console.log('confirmation 3-->',reqObj)
           
-          dispatch(sendTransactionHash(reqObj));
-        // }
-      })
-      .on("error", (error) => {
-        dispatch(
-          sendTransactionErrorLog({
-            reqObj: { ...options, error: error?.code ? error : error.message },
-          })
-        );
-        console.log('error errorerror',error)
-        if (error?.code === 4001) {
-          showMessage(t("transactionSignatureError"), "error");
-        } else {
-          showMessage(error, "error");
-        }
-      });
-  };
+  //         dispatch(sendTransactionHash(reqObj));
+  //       // }
+  //     })
+  //     .on("error", (error) => {
+  //       dispatch(
+  //         sendTransactionErrorLog({
+  //           reqObj: { ...options, error: error?.code ? error : error.message },
+  //         })
+  //       );
+  //       console.log('error errorerror',error)
+  //       if (error?.code === 4001) {
+  //         showMessage(t("transactionSignatureError"), "error");
+  //       } else {
+  //         showMessage(error, "error");
+  //       }
+  //     });
+  // };
 
   
+  const makeTransaction = async () => {
+    try {
+      let amountToWei = amount * 1e9;
+      // let options;
+      if (selectedWallet == "WalletConnect") {
+        const web3 = new Web3(provider);
+        // const currentChainId = await web3.eth.getChainId();
+        // const accounts = await web3.eth.getAccounts();
+        // const weiBalance = await web3.eth.getBalance(accounts[0]);
+
+        const contract = await new web3.eth.Contract(
+          wbdxAbi.abi,
+          "0x90bbdDbF3223363898065b9C736e2B86C655762b"
+          // matrixAbi.abi,
+          // "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
+        );
+        // const tx = contract.methods.burn(transferAmount.toString());
+        const tx = contract.methods.transfer(walletAddress, amountToWei);
+
+        let options = {
+          from: walletAddress,
+          to: contract._address,
+          data: tx.encodeABI(),
+          value: 0x0,
+        };
+        web3.eth
+          .sendTransaction(options)
+          .on("transactionHash", (hash) => {
+            console.log("✅ Transaction hash:", hash);
+            //       resolve({ transactionHash: hash });
+          })
+          .on("confirmation", (confirmationNumber) => {
+            const timestamp = Math.floor(new Date().getTime() / 1000.0);
+            const reqObj = {
+              uuid: swapResult.uuid,
+              amount,
+              timestamp,
+              memo: swapResult.memo,
+              hash: confirmationNumber.receipt.transactionHash,
+            };
+            console.log("reqObj:", reqObj);
+            dispatch(sendTransactionHash(reqObj));
+          })
+          .on("error", (error) => {
+            console.log("errnwofiiorrr:", error);
+          });
+
+        return;
+      } else {
+        let options = {
+          from: walletAddress,
+          to: contract._address,
+          data: contract.methods.burn(amountToWei.toString()).encodeABI(),
+          value: 0x0,
+        };
+        web3Obj.eth
+          .sendTransaction(options)
+          .on("confirmation", (confirmationNumber, receipt) => {
+            try {
+              const timestamp = Math.floor(new Date().getTime() / 1000.0);
+              // if (confirmationNumber === 0) {
+              const reqObj = {
+                uuid: swapResult.uuid,
+                amount,
+                timestamp,
+                memo: swapResult.memo,
+                hash: confirmationNumber.receipt.transactionHash,
+              };
+              console.log("meta swap:", swapResult);
+              dispatch(sendTransactionHash(reqObj));
+              // }
+            } catch (innerErr) {
+              console.error("Error inside confirmation handler:", innerErr);
+            }
+          })
+          .on("error", (error) => {
+            console.error("Transaction error:", error);
+            dispatch(
+              sendTransactionErrorLog({
+                reqObj: {
+                  ...options,
+                  error: error?.code ? error : error.message,
+                },
+              })
+            );
+            if (error?.code === 4001) {
+              showMessage(t("transactionSignatureError"), "error");
+            } else {
+              showMessage(error?.message || String(error), "error");
+            }
+          });
+        return;
+      }
+    } catch (outerError) {
+      console.error("Error in makeTransaction:", outerError);
+      dispatch(
+        sendTransactionErrorLog({
+          reqObj: { error: outerError?.message || String(outerError) },
+        })
+      );
+      showMessage(t("transactionFailed"), "error");
+    }
+  };
+
   const swapTypeChanged = async (swapType) => {
     setSwapType(swapType);
 
@@ -487,6 +617,12 @@ function Swap({ showMessage }) {
         // Optionally, navigate the user to a different page or display a message
       });
     }
+    if (provider) {
+      await provider.disconnect();
+      await provider.close?.(); // some providers need close()
+      setProvider(null);
+      console.log("Disconnected successfully");
+    }
     // await window.ethereum.request({
     //   method: "wallet_requestPermissions",
     //   params: [
@@ -497,8 +633,6 @@ function Swap({ showMessage }) {
     // });
     setConnectedWalletAddress("");
     setConnectedWalletBalance("");
-
-    
   };
   const handlePopupClose = (value) => {
     setShowPopup(!showPopup);
@@ -526,12 +660,15 @@ function Swap({ showMessage }) {
       //   });
       //   if (account) connectToMetaMask();
       // }
-
+      console.log("metamask....");
       if (mobileCheck()) {
         connectToMetamaskMobile();
       } else {
+        console.log("mey");
         connectToMetaMask();
       }
+    } else if (value === "WalletConnect") {
+      connectTowalletConnect();
     }
   };
   const onRefresh = () => {
@@ -541,7 +678,7 @@ function Swap({ showMessage }) {
   };
 
   const onTokenSwapFinalized = (transactions) => {
-    if(!transactions) return;
+    if (!transactions) return;
     const message =
       transactions?.length === 1
         ? t("newSwapSuccess", { count: 1 })
@@ -550,9 +687,9 @@ function Swap({ showMessage }) {
     setImmediate(() => UnconfirmedTransactions());
     // setImmediate(() => handleFinalizeSwap());
   };
-  
+
   const handleFinalizeSwap = () => {
-    if(!swapResult)return
+    if (!swapResult) return;
     dispatch(finalizeSwapToken({ uuid: swapResult.uuid }));
   };
 
@@ -579,16 +716,58 @@ function Swap({ showMessage }) {
     // this.setState({ swapInfo, page: 1 }, async () => {
     // const { walletAddress, swapType, amount, selectedWallet } = this.state;
 
+    if (connectedWalletAddress) {
+      setPage(1);
+    }
+
     if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
-      const result = await contract.methods
-        .balanceOf(connectedWalletAddress)
-        .call();
-      const balance = Number(result) / 1e9;
+      console.log("which wallet connect:", selectedWallet);
+      // const result = await contract.methods
+      //   .balanceOf(connectedWalletAddress)
+      //   .call();
+      // const balance = Number(result) / 1e9;
+      let balance;
+      if (selectedWallet && selectedWallet == "WalletConnect") {
+        console.log("wallet connect..");
+        const web3 = new Web3(provider);
+        const currentChainId = await web3.eth.getChainId();
+        console.log("currentChainId:retryIfWrongNetwork", currentChainId);
+
+        const accounts = await web3.eth.getAccounts();
+        console.log("accounts::", accounts[0]);
+
+        const weiBalance = await web3.eth.getBalance(accounts[0]);
+        console.log("weiBalance:", weiBalance);
+        console.log(
+          "baln:",
+          parseFloat(web3.utils.fromWei(weiBalance, "ether"))
+        );
+        const contract = await new web3.eth.Contract(
+          wbdxAbi.abi,
+          "0x90bbdDbF3223363898065b9C736e2B86C655762b"
+          // matrixAbi.abi,
+          // "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
+        );
+        console.log("contract:", contract);
+        const result = await contract.methods
+          .balanceOf(connectedWalletAddress)
+          .call();
+        console.log("tokenBAL:", result);
+        const balance = result.toString() / 1e9;
+        console.log("balance:", balance);
+        console.log("contract._address:", contract._address);
+      } else {
+        const result = await contract.methods
+          .balanceOf(connectedWalletAddress)
+          .call();
+        balance = Number(result) / 1e9;
+      }
       if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
         if (parseFloat(amount) > parseFloat(balance)) {
           showMessage(t("exceedingBalanceWarning"), "error");
           console.log(t("exceedingBalanceWarning"));
         } else if (parseFloat(amount) > 0) {
+          console.log("make payment");
           makeTransaction();
         } else {
           showMessage(t("greaterThanZeroError"), "error");
@@ -608,7 +787,6 @@ function Swap({ showMessage }) {
 
     // Later, to clear them (e.g., on component unmount or when stopping)
 
-    setPage(1);
     // setImmediate(() => this.getUnconfirmedTransactions());
     // setImmediate(() => this.getSwaps());
   };
@@ -627,7 +805,6 @@ function Swap({ showMessage }) {
     // setAmount(selAmount);
     // Gas check logic as before...
     dispatch(swapToken({ type: swapType, address: selAddress }));
-    onTokenSwapped();
   };
 
   // For rendering the transaction list

@@ -11,12 +11,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useTranslation } from "react-i18next";
 import metamask from "./metamask.png";
 import trustWallet from "./trustWallet.png";
+import walletConnect from "./walletConnect.png"
 import styles from "./styles";
 
 function Popup({ onClose, selectedValue, open }) {
   const { t } = useTranslation();
 
   const [wallets] = useState([
+    { text: "WalletConnect", img: walletConnect },
     { text: "Trust Wallet", img: trustWallet },
     { text: "Metamask", img: metamask },
   ]);

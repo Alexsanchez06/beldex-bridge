@@ -16,6 +16,7 @@ import Swaptabs from "./swapTabs";
 import binance from "../popup/binance.png";
 import metamask from "../popup/metamask.png";
 import trustwallet from "../popup/trustWallet.png"
+import walletConnect from "../popup/walletConnect.png"
 import { useDispatch, useSelector } from "react-redux";
 
 import { getBalance } from "../../store/swapReducer";
@@ -191,7 +192,7 @@ function SwapSelection({
               <Box sx={{ display: "flex", gap: "10px" }}>
                 <Avatar
                   sx={{ width: 24, height: 24 }}
-                  src={selectedWallet === "Binance"  ? binance :selectedWallet==='Trust Wallet'?trustwallet: metamask}
+                  src={selectedWallet === "Binance"  ? binance :selectedWallet==='Trust Wallet'?trustwallet: selectedWallet ==='WalletConnect'? walletConnect : metamask}
                 />
                 <Typography
                   sx={{
