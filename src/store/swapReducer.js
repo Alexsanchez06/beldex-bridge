@@ -7,11 +7,11 @@ const { useAPIEncryption } = config;
 
 // Utility for encrypted API requests
 const apiRequest = async ({ endpoint, method, body }) => {
-  console.log('confirmation api hit-->',endpoint)
   let payload = body;
   if (useAPIEncryption && method === 'POST') {
     payload = encrypt(body, endpoint);
   }
+  try {
   const { data } = await axios({
      baseURL: __BASEAPIURL__,
     // baseURL:` http://localhost:8000/`,
@@ -20,9 +20,25 @@ const apiRequest = async ({ endpoint, method, body }) => {
     ...(body && method === 'POST' && { data: payload }),
     ...(body && method === 'GET' && { params: payload }),
   });
-
-  if (data.status === 200 && !data.success) throw new Error(data.result);
+  // if (data.status !== 200) {
+  //   // throw with a clean message
+  //   throw new Error(data.result || 'API request failed');
+  // }
+  // if (data.status !== 200 ) throw new Error(data.result);
+  if (data.status !== 200) {
+    // Instead of throwing Error, throw an object that thunk can catch
+    throw { isApiError: true, data };
+  }
   return data.result;
+}
+catch (error) {
+  console.log('api error ',error)
+  if (error.status===400 && error?.response?.data) {
+    // Pass API error up
+    throw error?.response?.data?.result || error.code;
+  }
+  throw error;
+}
 };
 
 // Async thunks replacing Flux actions
@@ -105,6 +121,10 @@ const swapSlice = createSlice({
         state.loading = false;
         state.swapResult = action.payload;
       })
+      .addCase(swapToken.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
       // Finalize Swap
     
       .addCase(finalizeSwapToken.fulfilled, (state, action) => {
@@ -120,7 +140,7 @@ const swapSlice = createSlice({
       })
       // Error handling
       .addMatcher(
-        (action) => action.type.endsWith('/rejected'),
+        (action) => action.type.endsWith('/rejected')  ,
         (state, action) => {
           state.error = action.error.message;
         }

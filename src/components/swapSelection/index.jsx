@@ -244,9 +244,7 @@ function SwapSelection({
 
       <Grid2 item xs={12}>
         <Input
-          sx={{
-            border: "1px solid white !important",
-          }}
+          
           fullWidth
           label={inputLabel}
           placeholder={inputPlaceholder}

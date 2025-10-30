@@ -50,9 +50,22 @@ function StyledInput({
   return (
     <FormControl sx={styles.root} variant="outlined" fullWidth={fullWidth} error={error}>
       <StyledLabel label={label} />
-      <OutlinedInput
-        id={id}
-        sx={{border:'1px solid #393954',borderRadius:'10px'}}
+        <OutlinedInput
+          id={id}
+          sx={{
+            borderRadius: '10px',
+            border: '1px solid #393954',
+            outline: 'none',
+            // Target the notched outline element inside OutlinedInput 
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              border: 'none', // your desired hover border color
+              outline: 'none',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              border: 'none',
+              outline: 'none',
+            },
+          }}
         placeholder={placeholder}
         fullWidth={fullWidth}
         defaultValue={defaultValue}

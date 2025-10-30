@@ -188,6 +188,8 @@ function SwapInfo({
                 padding: "10px 12px",
                 // border: "1px solid #00AD07",
                 wordBreak: "break-all",
+                color: '#EBEBEB',
+                width:'77%'
               }}
             >
               {depositAddress}
@@ -207,10 +209,10 @@ function SwapInfo({
                 <IconButton
                   onClick={() => onCopy(depositAddress)}
                   aria-label="Copy Address"
-                  size="small"
+                  size="medium"
                   sx={{ color: "#AFAFBE" }}
                 >
-                  <img alt="Copy" src={CopyIcon} width={18} height={18} />
+                  <img alt="Copy" src={CopyIcon} width={26} height={26} />
                 </IconButton>
               </Tooltip>
 
@@ -218,10 +220,10 @@ function SwapInfo({
                 <IconButton
                   onClick={toggleQR}
                   aria-label="Toggle QR"
-                  size="small"
+                  size="medium"
                   sx={{ color: "#AFAFBE" }}
                 >
-                  <img alt="QR" src={QrCodeIcon} width={18} height={18} />
+                  <img alt="QR" src={QrCodeIcon} width={26} height={26} />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -273,6 +275,10 @@ function SwapInfo({
           sx={{
             flexDirection: "column",
             wordBreak: "break-word",
+            border: "1px solid #393954",
+            padding: "20px",
+            marginTop: "16px",
+            borderRadius: "10px"
           }}
         >
           <Typography

@@ -184,6 +184,7 @@ export const styles = (theme) => ({
     fontSize: "14px",
     fontStyle: "normal",
     fontWeight: 500,
+    padding:'15px 10px 0',
     [theme.breakpoints.down("sm")]: {
       fontSize: "0.7rem",
       width: "90%",

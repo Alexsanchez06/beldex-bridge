@@ -32,7 +32,9 @@ import {
   finalizeSwapToken,
   sendTransactionHash,
   getUnconfirmedBeldexTxs,
+  clearError
 } from "../../store/swapReducer";
+
 import {
   selectInfo,
   selectSwaps,
@@ -98,8 +100,10 @@ function Swap({ showMessage }) {
       } else {
         showMessage(error.toString(), "error");
       }
+       setTimeout(clearErrormsg,1000) 
     }
-  }, []);
+  }, [error]);
+
   useEffect(() => {
     if (!swapResult) return;
     onTokenSwapped();
@@ -120,6 +124,9 @@ function Swap({ showMessage }) {
   const transactionsInfoSuccess = () => {
     showMessage(t("transactionSuccess"), "success");
   };
+  const clearErrormsg=()=>{
+    dispatch(clearError())
+  }
   // Merge unconfirmed & swaps like your original renderTransactions
   const mergedSwaps = useMemo(() => {
     if (swapType !== SWAP_TYPE.BDX_TO_BBDX) return swaps;
