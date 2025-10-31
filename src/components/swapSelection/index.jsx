@@ -82,7 +82,7 @@ function SwapSelection({
     const isValidAddress = address && address.length > 0;
     setAddressError(!isValidAddress);
 
-    if (isValidAddress || this.props.connectedWalletAddress) {
+    if (isValidAddress || connectedWalletAddress) {
       if (swapType === SWAP_TYPE.BBDX_TO_BDX) {
         onNext(address, amount);
       } else if (swapType === SWAP_TYPE.BDX_TO_BBDX) {
@@ -248,7 +248,7 @@ function SwapSelection({
           fullWidth
           label={inputLabel}
           placeholder={inputPlaceholder}
-          value={connectedWalletAddress? connectedWalletAddress : address}
+          value={addressType === "bnb" && connectedWalletAddress ? connectedWalletAddress : address}
           error={addressError}
           type="text"
           onChange={handleAddressChanged}

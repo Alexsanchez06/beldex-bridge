@@ -32,7 +32,7 @@ import {
   finalizeSwapToken,
   sendTransactionHash,
   getUnconfirmedBeldexTxs,
-  clearError
+  clearError,
 } from "../../store/swapReducer";
 
 import {
@@ -100,7 +100,7 @@ function Swap({ showMessage }) {
       } else {
         showMessage(error.toString(), "error");
       }
-       setTimeout(clearErrormsg,1000) 
+      setTimeout(clearErrormsg, 1000);
     }
   }, [error]);
 
@@ -124,9 +124,9 @@ function Swap({ showMessage }) {
   const transactionsInfoSuccess = () => {
     showMessage(t("transactionSuccess"), "success");
   };
-  const clearErrormsg=()=>{
-    dispatch(clearError())
-  }
+  const clearErrormsg = () => {
+    dispatch(clearError());
+  };
   // Merge unconfirmed & swaps like your original renderTransactions
   const mergedSwaps = useMemo(() => {
     if (swapType !== SWAP_TYPE.BDX_TO_BBDX) return swaps;
@@ -161,6 +161,14 @@ function Swap({ showMessage }) {
 
   const switchToBscChain = async () => {
     try {
+      if (!provider) {
+        console.error("❌ Provider not found. Connect wallet first.");
+        // showMessage(
+        //   `Provider not found. Connect wallet first.`,
+        //   "error"
+        // );
+        return;
+      }
       await provider.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: binanceChainId }],
@@ -202,6 +210,10 @@ function Swap({ showMessage }) {
 
   const connectTowalletConnect = async () => {
     try {
+      if (provider) {
+        await provider.disconnect();
+        localStorage.removeItem("wc@2:core:0.3//session"); // newer v2 session key
+      }
       const wcProvider = await WalletConnectProvider.init({
         projectId: "d6e8a543600ce8c35a86597474351aef", // from https://cloud.walletconnect.com
         chains: [97], // BSC Testnet chainId
@@ -219,7 +231,7 @@ function Swap({ showMessage }) {
         //   56: "https://bsc-dataseed.binance.org/",
         // },
       });
-      const binanceChainId = "97";
+      const binanceChainId = 97;
       await wcProvider.enable();
       setProvider(wcProvider);
       const web3 = await new Web3(wcProvider);
@@ -233,6 +245,10 @@ function Swap({ showMessage }) {
       );
       if (currentChainId !== BigInt(binanceChainId)) {
         console.log("⚠️ Wrong network! Switching to BSC Testnet...");
+         showMessage(
+          `Wrong network! Switching to BSC Testnet...`,
+          "error"
+        );
         await switchToBscChain();
       } else {
         console.log("✅ Connected to BSC Testnet");
@@ -276,6 +292,10 @@ function Swap({ showMessage }) {
         if (chainId === binanceChainId) {
           showMessage(`Bravo!, you are on the correct network.`, "success");
         } else {
+          showMessage(
+          `Wrong network! Switching to BSC Testnet...`,
+          "error"
+        );
           await switchToBscChain();
         }
         console.log("connectToMetaMask before eth_requestAccounts :");
@@ -821,7 +841,11 @@ function Swap({ showMessage }) {
           <Grid size={{ xs: 12, md: 5 }}>
             <div className={classes.leftPane}>
               <p className="appName">
-                <span className="beldexName">Beldex</span> <span className="beldexName" style={{color:'#F3BA2F'}}>BSC</span> Bridge
+                <span className="beldexName">Beldex</span>{" "}
+                <span className="beldexName" style={{ color: "#F3BA2F" }}>
+                  BSC
+                </span>{" "}
+                Bridge
               </p>
               <p className="app-left-content">{t("beldexBridgeInfo")}</p>
             </div>
