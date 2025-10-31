@@ -24,7 +24,7 @@ function Popup({ onClose, selectedValue, open }) {
   ]);
 
   const handleClose = () => {
-    onClose(selectedValue);
+    onClose();
   };
 
   const handleListItemClick = (value) => {

@@ -263,82 +263,152 @@ function Swap({ showMessage }) {
       console.log("errorr::", err);
     }
   };
-
-  const connectToMetaMask = async () => {
-    console.log("connectToMetaMask 1-->");
-    let mobileView = await mobileCheck();
-    // const provider = window.ethereum;
-    const binanceChainId = __CHAINID__;
-    // const binanceChainId = "0x61";
-    console.log("connectToMetaMask binanceChainId-->", binanceChainId);
-    if (!mobileView && !window.ethereum.isMetaMask) {
-      return showMessage(t("MetaMask is not installed."), "error");
-    }
-    const web3Obj = new Web3(window.ethereum);
-    console.log("connectToMetaMask web3Obj[0]-->");
-
-    // alert(web3Obj)
+  async function connectToMetaMask() {
     try {
-      console.log("connectToMetaMask before enable-->");
-
-      window.ethereum.enable();
-      console.log("connectToMetaMask after enable-->");
-
-      if (web3Obj) {
-        const chainId = await window.ethereum.request({
-          method: "eth_chainId",
-        });
-        console.log("chaild id :", chainId);
+      if (!window.ethereum) {
+        alert('MetaMask is not installed!');
+        return;
+      }
+  
+      // 1️⃣ Request accounts
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+  
+      if (accounts && accounts.length > 0) {
+        const address = accounts[0];
+        console.log('Connected address:', address);
+        setWalletAddress(address);
+  
+        // 2️⃣ Check network (BSC)
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        console.log('chain id :', chainId);
+  
+        const binanceChainId = __CHAINID__; // ✅ BSC Mainnet (use '0x61' for testnet)
+  
         if (chainId === binanceChainId) {
-          showMessage(`Bravo!, you are on the correct network.`, "success");
+          showMessage(`Bravo! You are on the correct network.`, 'success');
         } else {
-          showMessage(
-          `Wrong network! Switching to BSC Testnet...`,
-          "error"
-        );
+          showMessage('Wrong network, switching to BSC...', 'warning');
+          console.warn('Wrong network, switching to BSC...');
+
           await switchToBscChain();
         }
-        console.log("connectToMetaMask before eth_requestAccounts :");
-
-        const account = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        console.log("connectToMetaMask account[0]-->", account[0]);
-        const address = account[0] || null;
-        setWalletAddress(address);
-        getBalance(address);
-
-        //   let address = setInterval(() => {
-        //     console.log('connectToMetaMask 6.2-->','errerr -->',)
-        //     web3Obj.eth.getCoinbase((err, res) => {
-        //       console.log('connectToMetaMask 6.1-->',res,'errerr -->',err)
-        //       if (res) {
-        // console.log('connectToMetaMask 7-->',res)
-
-        //          setWalletConnMeta(true)
-
-        //         contract = new web3Obj.eth.Contract(
-        //           matrixAbi.abi,
-        //           __CONTRACT_ADDR__
-        //         );
-        //         clearInterval(address);
-        //         console.log('getAddress -->',mobileView ? res[0] : res )
-        //          setWalletAddress(mobileView ? res[0] : res );
-        //         getBalance(mobileView ? res[0] : res)
-        //         window.ethereum.on("accountsChanged", async (accounts) => {
-        // console.log('connectToMetaMask 8-->',accounts)
-
-        //           const address = accounts[0] || null;
-        //           setWalletAddress( address);
-        //         });
-        //       }
-        //     });
-        //   }, 500);
+  
+        // 3️⃣ Get balance after connection
+        await getBalance(address);
+      } else {
+        console.warn('No accounts fetched by MetaMask');
       }
+  
+      // 4️⃣ Handle account change
+      window.ethereum.on('accountsChanged', (newAccounts) => {
+        if (newAccounts.length > 0) {
+          const newAddress = newAccounts[0];
+          setWalletAddress(newAddress);
+          getBalance(newAddress);
+        }
+      });
+
+      // // 5️⃣ Handle network change
+      // window.ethereum.on('chainChanged', async (newChainId) => {
+      //   console.log('Network changed:', newChainId);
+      //   if (newChainId !== '0x61') {
+      //     console.log('Network changed:', newChainId);
+      //     await switchToBscChain();
+      //   }
+      // });
+  
     } catch (error) {
-      return false;
+      console.error('MetaMask connection failed:', error);
     }
-  };
+  }
+  
+  // const connectToMetaMask = async () => {
+  //   console.log("connectToMetaMask 1-->");
+  //   let mobileView = await mobileCheck();
+  //   // const provider = window.ethereum;
+  //   const binanceChainId = __CHAINID__;
+  //   // const binanceChainId = "0x61";
+  //   console.log("connectToMetaMask binanceChainId-->", binanceChainId);
+  //   if (!mobileView && !window.ethereum.isMetaMask) {
+  //     return showMessage(t("MetaMask is not installed."), "error");
+  //   }
+  //   const web3Obj = new Web3(window.ethereum);
+  //   console.log("connectToMetaMask web3Obj[0]-->");
+
+  //   // alert(web3Obj)
+  //   try {
+  //     console.log("connectToMetaMask before enable-->");
+
+  //     window.ethereum.enable();
+  //     console.log("connectToMetaMask after enable-->");
+
+  //     if (web3Obj) {
+  //       const chainId = await window.ethereum.request({
+  //         method: "eth_chainId",
+  //       });
+  //       console.log("chaild id :", chainId);
+  //       if (chainId === binanceChainId) {
+  //         showMessage(`Bravo!, you are on the correct network.`, "success");
+  //       } else {
+  //         await switchToBscChain();
+  //       }
+  //       console.log("connectToMetaMask before eth_requestAccounts :");
+
+  //       let getaddress = setInterval(async() => {
+            
+            
+  //         // const account = await window.ethereum.request({
+  //         //   method: "eth_requestAccounts",
+  //         // });
+  //           window.ethereum.on('accountsChanged', (newAccounts) => {
+  //   if (newAccounts.length > 0) {
+  //     setWalletAddress(newAccounts[0]);
+  //     getBalance(newAccounts[0]);
+  //   }
+  // });
+  //         // console.log("connectToMetaMask account[0]-->", account[0]);
+  //         // const address = account[0] || null;
+  //         // setWalletAddress(address);
+  //         // getBalance(address);
+  //         clearInterval(getaddress);
+    
+  //       }, 500);
+   
+  //     }
+  //   } catch (error) {
+  //  console.log(error)
+  //    return;
+  //   }
+  //   //        let getaddress = setInterval(async() => {
+            
+            
+  //   //         // const account = await window.ethereum.request({
+  //   //         //   method: "eth_requestAccounts",
+  //   //         // });
+  //   //           window.ethereum.on('accountsChanged', (newAccounts) => {
+  //   //   if (newAccounts.length > 0) {
+  //   //     setWalletAddress(newAccounts[0]);
+  //   //     getBalance(newAccounts[0]);
+  //   //   }
+  //   // });
+  //   //         // console.log("connectToMetaMask account[0]-->", account[0]);
+  //   //         // const address = account[0] || null;
+  //   //         // setWalletAddress(address);
+  //   //         // getBalance(address);
+  //   //         clearInterval(getaddress);
+      
+  //   //       }, 500);
+  //   // window.ethereum.on('accountsChanged', (newAccounts) => {
+  //   //   if (newAccounts.length > 0) {
+  //   //     setWalletAddress(newAccounts[0]);
+  //   //     getBalance(newAccounts[0]);
+  //   //   }
+  //   // });
+   
+
+  // };
   const connectToMetamaskMobile = async () => {
     // if (mobileCheck()) {
     if (
@@ -627,6 +697,8 @@ function Swap({ showMessage }) {
     // });
     setConnectedWalletAddress("");
     setConnectedWalletBalance("");
+    setSelectedWallet('');
+    setWalletAddress('')
   };
   const handlePopupClose = (value) => {
     setShowPopup(!showPopup);
