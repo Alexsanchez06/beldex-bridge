@@ -458,7 +458,7 @@ function SwapInfo({
           color: "#EBEBEB",
         }}
       >
-        0x90bbdDbF3223363898065b9C736e2B86C655762b
+         {process.env.VITE_CONTRACT_ADDR}
       </Typography>
 
       <Snackbar

@@ -82,11 +82,11 @@ function SwapSelection({
     const isValidAddress = address && address.length > 0;
     setAddressError(!isValidAddress);
 
-    if (isValidAddress) {
+    if (isValidAddress || this.props.connectedWalletAddress) {
       if (swapType === SWAP_TYPE.BBDX_TO_BDX) {
         onNext(address, amount);
       } else if (swapType === SWAP_TYPE.BDX_TO_BBDX) {
-        onNext(address, "");
+        onNext(connectedWalletAddress, "");
       }
     }
   };
@@ -141,7 +141,7 @@ function SwapSelection({
   const addressType = getAddressType();
   const inputLabel =
     addressType === TYPE.BDX ? t("bdxAddress") : t("bnbAddress");
-  const inputPlaceholder = addressType === TYPE.BDX ? "BDX..." : "BDX-BSC...";
+  const inputPlaceholder = addressType === TYPE.BDX ? "BDX..." : "Please connect your wallet";
   const url = walletCreationUrl["bnb"];
   return (
     <Grid2 item xs={12} sx={styles.root}>
@@ -248,7 +248,7 @@ function SwapSelection({
           fullWidth
           label={inputLabel}
           placeholder={inputPlaceholder}
-          value={address}
+          value={connectedWalletAddress? connectedWalletAddress : address}
           error={addressError}
           type="text"
           onChange={handleAddressChanged}
@@ -286,7 +286,7 @@ function SwapSelection({
               ? !address ||
                 (info?.fees?.bdx / 1e9 || 0) >= amount ||
                 amount === "."
-              : !address
+              : !connectedWalletAddress
           }
           onClick={handleNext}
         />
@@ -301,7 +301,7 @@ function SwapSelection({
             {t("con_address")} :
           </Typography>
           <Typography sx={styles.wbdxAddress}>
-            0x90bbdDbF3223363898065b9C736e2B86C655762b
+            {process.env.VITE_CONTRACT_ADDR}
           </Typography>
         </>
       )}

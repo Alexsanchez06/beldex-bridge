@@ -50,10 +50,10 @@ export default function App() {
     return (
       <div id="background" ref={ref}>
         {inView && (
-          <ImageLoader
+          <ImageLoader style={{width:"100%",height:"100%",position:'absolute' }}
             className="backgroundImage"
             loadedClassName="backgroundImageLoaded"
-            src="/images/background.png"
+            src="/images/bdxAndBeldexBG.jpg"
             alt="Background"
           />
         )}

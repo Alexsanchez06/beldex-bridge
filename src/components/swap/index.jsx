@@ -821,7 +821,7 @@ function Swap({ showMessage }) {
           <Grid size={{ xs: 12, md: 5 }}>
             <div className={classes.leftPane}>
               <p className="appName">
-                <span className="beldexName">Beldex</span> Bridge
+                <span className="beldexName">Beldex</span> <span className="beldexName" style={{color:'#F3BA2F'}}>BSC</span> Bridge
               </p>
               <p className="app-left-content">{t("beldexBridgeInfo")}</p>
             </div>

@@ -54,7 +54,9 @@ code {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #21212d;
+  background-image: url(/images/bdxAndBeldexBG.jpg);
+  width:100%;
+  height:100%;
 }
 /* width */
 ::-webkit-scrollbar {
@@ -87,7 +89,7 @@ Handle on hover ::-webkit-scrollbar-thumb:hover {
 
 .appName {
   color: #fff;
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: 400;
   margin-top: 0;
   margin-bottom: 0;
@@ -105,7 +107,7 @@ Handle on hover ::-webkit-scrollbar-thumb:hover {
 .app-left-content {
   color: #afafbe;
   font-family: Poppins;
-  font-size: 22px;
+  font-size: 20px;
   font-style: normal;
   font-weight: 300;
 }
@@ -141,7 +143,7 @@ Handle on hover ::-webkit-scrollbar-thumb:hover {
 .title {
   /* margin: 20px; */
   width: 65%;
-  margin: 20px 20px 0px;
+  margin: 44px 35px 0px;
   height: 60px;
   /* position: relative; */
 }
@@ -207,6 +209,7 @@ Handle on hover ::-webkit-scrollbar-thumb:hover {
   /* margin-bottom: 20px; */
 }
 .connectButton{
+font-size: 18px;
 color: #fff;
 width: 100%;
 margin-top: 20px;

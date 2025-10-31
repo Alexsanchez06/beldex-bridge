@@ -10,4 +10,3 @@ export default {
       txExplorerUrl: 'https://testnet.beldex.dev/search?value='
     }
   };
-  
