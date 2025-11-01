@@ -13,8 +13,7 @@ const apiRequest = async ({ endpoint, method, body }) => {
   }
   try {
   const { data } = await axios({
-     baseURL: __BASEAPIURL__,
-    // baseURL:` http://localhost:8000/`,
+     baseURL: import.meta.env.VITE_APIURL,
     url: endpoint,
     method: method.toLowerCase(),
     ...(body && method === 'POST' && { data: payload }),

@@ -58,6 +58,7 @@ export default ({ mode }) => {
       },
     },
     build: {
+      outDir: 'build', // change output folder name
       rollupOptions: {
         plugins: [rollupNodePolyFill()],
       },

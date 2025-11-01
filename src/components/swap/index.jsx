@@ -73,8 +73,7 @@ function Swap({ showMessage }) {
   let web3Obj = new Web3(window.ethereum);
   let contract = new web3Obj.eth.Contract(
     matrixAbi.abi,
-    __CONTRACT_ADDR__
-    // "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
+    import.meta.env.VITE_CONTRACT_ADDR
   );
 
   // Local UI/wallet state
@@ -161,6 +160,7 @@ function Swap({ showMessage }) {
 
   const switchToBscChain = async () => {
     try {
+      const binanceChainId = import.meta.env.VITE_CHAINID;
       if (!provider) {
         console.error("❌ Provider not found. Connect wallet first.");
         // showMessage(
@@ -214,41 +214,32 @@ function Swap({ showMessage }) {
         await provider.disconnect();
         localStorage.removeItem("wc@2:core:0.3//session"); // newer v2 session key
       }
+      const chainid = import.meta.env.VITE_CHAINID;
       const wcProvider = await WalletConnectProvider.init({
-        projectId: "d6e8a543600ce8c35a86597474351aef", // from https://cloud.walletconnect.com
-        chains: [97], // BSC Testnet chainId
-        showQrModal: true,
-        // optionalChains: [97], // Optional: BSC mainnet
-        rpcMap: {
-          97: "https://bsc-testnet-rpc.publicnode.com",
-          // 97: "https://bsc-testnet.blockpi.network/v1/rpc/public", // BSC Testnet RPC
-          // 97:"https://data-seed-prebsc-1-s1.binance.org:8545"
-        },
-
-        // chains: [56], // BSC Testnet
+        projectId: import.meta.env.VITE_PROJECT_ID, // from https://cloud.walletconnect.com
+        // chains: [chainid], 
         // showQrModal: true,
+        // // optionalChains: [97], // Optional: BSC mainnet
         // rpcMap: {
-        //   56: "https://bsc-dataseed.binance.org/",
+        //   97 : import.meta.env.VITE_BSCURL,
+        //   // 97:"https://data-seed-prebsc-1-s1.binance.org:8545"
         // },
+
+        chains: [chainid], // BSC Testnet
+        showQrModal: true,
+        rpcMap: {
+          [chainid]: import.meta.env.VITE_BSCURL,
+        },
       });
-      const binanceChainId = 97;
+      const binanceChainId = import.meta.env.VITE_CHAINID;
       await wcProvider.enable();
       setProvider(wcProvider);
       const web3 = await new Web3(wcProvider);
       const accounts = await web3.eth.getAccounts();
       const currentChainId = await web3.eth.getChainId();
-      console.log("currentChainId:", currentChainId, typeof currentChainId);
-      console.log("BigInt:", BigInt(97));
-      console.log(
-        "currentChainId !== BigInt(binanceChainId):",
-        currentChainId !== BigInt(binanceChainId)
-      );
       if (currentChainId !== BigInt(binanceChainId)) {
         console.log("⚠️ Wrong network! Switching to BSC Testnet...");
-         showMessage(
-          `Wrong network! Switching to BSC Testnet...`,
-          "error"
-        );
+        // showMessage(`Wrong network! Switching to BSC Testnet...`, "error");
         await switchToBscChain();
       } else {
         console.log("✅ Connected to BSC Testnet");
@@ -266,43 +257,43 @@ function Swap({ showMessage }) {
   async function connectToMetaMask() {
     try {
       if (!window.ethereum) {
-        alert('MetaMask is not installed!');
+        alert("MetaMask is not installed!");
         return;
       }
-  
+
       // 1️⃣ Request accounts
       const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
+        method: "eth_requestAccounts",
       });
-  
       if (accounts && accounts.length > 0) {
         const address = accounts[0];
-        console.log('Connected address:', address);
         setWalletAddress(address);
-  
+
         // 2️⃣ Check network (BSC)
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        console.log('chain id :', chainId);
-  
-        const binanceChainId = __CHAINID__; // ✅ BSC Mainnet (use '0x61' for testnet)
-  
+        const chainId = await window.ethereum.request({
+          method: "eth_chainId",
+        });
+        console.log("chain id :", chainId);
+
+        const binanceChainId = import.meta.env.VITE_CHAINID; // ✅ BSC Mainnet (use '0x61' for testnet)
+        console.log("chaind nina:", binanceChainId);
         if (chainId === binanceChainId) {
-          showMessage(`Bravo! You are on the correct network.`, 'success');
+          showMessage(`Bravo! You are on the correct network.`, "success");
         } else {
-          showMessage('Wrong network, switching to BSC...', 'warning');
-          console.warn('Wrong network, switching to BSC...');
+          // showMessage("Wrong network, switching to BSC...", "warning");
+          console.warn("Wrong network, switching to BSC...");
 
           await switchToBscChain();
         }
-  
+
         // 3️⃣ Get balance after connection
         await getBalance(address);
       } else {
-        console.warn('No accounts fetched by MetaMask');
+        console.warn("No accounts fetched by MetaMask");
       }
-  
+
       // 4️⃣ Handle account change
-      window.ethereum.on('accountsChanged', (newAccounts) => {
+      window.ethereum.on("accountsChanged", (newAccounts) => {
         if (newAccounts.length > 0) {
           const newAddress = newAccounts[0];
           setWalletAddress(newAddress);
@@ -318,12 +309,11 @@ function Swap({ showMessage }) {
       //     await switchToBscChain();
       //   }
       // });
-  
     } catch (error) {
-      console.error('MetaMask connection failed:', error);
+      console.error("MetaMask connection failed:", error);
     }
   }
-  
+
   // const connectToMetaMask = async () => {
   //   console.log("connectToMetaMask 1-->");
   //   let mobileView = await mobileCheck();
@@ -357,8 +347,7 @@ function Swap({ showMessage }) {
   //       console.log("connectToMetaMask before eth_requestAccounts :");
 
   //       let getaddress = setInterval(async() => {
-            
-            
+
   //         // const account = await window.ethereum.request({
   //         //   method: "eth_requestAccounts",
   //         // });
@@ -373,17 +362,16 @@ function Swap({ showMessage }) {
   //         // setWalletAddress(address);
   //         // getBalance(address);
   //         clearInterval(getaddress);
-    
+
   //       }, 500);
-   
+
   //     }
   //   } catch (error) {
   //  console.log(error)
   //    return;
   //   }
   //   //        let getaddress = setInterval(async() => {
-            
-            
+
   //   //         // const account = await window.ethereum.request({
   //   //         //   method: "eth_requestAccounts",
   //   //         // });
@@ -398,7 +386,7 @@ function Swap({ showMessage }) {
   //   //         // setWalletAddress(address);
   //   //         // getBalance(address);
   //   //         clearInterval(getaddress);
-      
+
   //   //       }, 500);
   //   // window.ethereum.on('accountsChanged', (newAccounts) => {
   //   //   if (newAccounts.length > 0) {
@@ -406,7 +394,6 @@ function Swap({ showMessage }) {
   //   //     getBalance(newAccounts[0]);
   //   //   }
   //   // });
-   
 
   // };
   const connectToMetamaskMobile = async () => {
@@ -438,7 +425,7 @@ function Swap({ showMessage }) {
         setWalletConnBin(true);
 
         const BSC_TESTNET_PARAMS = {
-          chainId: "0x61", // 97 in hex
+          chainId: import.meta.env.VITE_CHAINID, // 97 in hex
           chainName: "Binance Smart Chain Testnet",
           nativeCurrency: {
             name: "Binance Coin",
@@ -528,7 +515,7 @@ function Swap({ showMessage }) {
           // wbdxAbi.abi,
           // "0x90bbdDbF3223363898065b9C736e2B86C655762b"
           matrixAbi.abi,
-          "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
+          import.meta.env.VITE_CONTRACT_ADDR
         ); // const tx = contract.methods.burn(transferAmount.toString());
         const tx = contract.methods.transfer(walletAddress, amountToWei);
 
@@ -697,8 +684,8 @@ function Swap({ showMessage }) {
     // });
     setConnectedWalletAddress("");
     setConnectedWalletBalance("");
-    setSelectedWallet('');
-    setWalletAddress('')
+    setSelectedWallet("");
+    setWalletAddress("");
   };
   const handlePopupClose = (value) => {
     setShowPopup(!showPopup);
@@ -811,7 +798,7 @@ function Swap({ showMessage }) {
           // wbdxAbi.abi,
           // "0x90bbdDbF3223363898065b9C736e2B86C655762b"
           matrixAbi.abi,
-          "0x2BE10C60ce001e7aA4b86332775e0a9d6f75f31f"
+          import.meta.env.VITE_CONTRACT_ADDR
         );
         console.log("contract:", contract);
         const result = await contract.methods
