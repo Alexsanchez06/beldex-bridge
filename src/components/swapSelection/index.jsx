@@ -301,7 +301,7 @@ function SwapSelection({
             {t("con_address")} :
           </Typography>
           <Typography sx={styles.wbdxAddress}>
-            {process.env.VITE_CONTRACT_ADDR}
+            {import.meta.env.VITE_CONTRACT_ADDR}
           </Typography>
         </>
       )}

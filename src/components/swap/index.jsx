@@ -46,7 +46,6 @@ import {
   selectfinalizeSwapTokenResult,
   selectTransactionInfo,
 } from "../../store/swapSelector";
-import { switchChain } from "viem/actions";
 
 const currencySymbols = {
   [TYPE.BDX]: "BDX",
@@ -158,20 +157,22 @@ function Swap({ showMessage }) {
     return false;
   };
 
-  const switchToBscChain = async () => {
+  const switchToBscChain = async (connectedWalletType) => {
     try {
       const binanceChainId = import.meta.env.VITE_CHAINID;
-      if (!provider) {
+      if (connectedWalletType == "WalletConnect" && !provider) {
         console.error("❌ Provider not found. Connect wallet first.");
-        // showMessage(
-        //   `Provider not found. Connect wallet first.`,
-        //   "error"
-        // );
+        showMessage(
+          `Provider not found.Connect wallet first.`,
+          "error"
+        );
         return;
       }
+      const provider =
+        connectedWalletType == "WalletConnect" ? provider : window.ethereum;
       await provider.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: binanceChainId }],
+        params: [{ chainId: import.meta.env.VITE_SWITCH_CHAINID }],
       });
     } catch (switchError) {
       console.log("switchError ::", switchError);
@@ -189,12 +190,12 @@ function Swap({ showMessage }) {
             method: "wallet_addEthereumChain",
             params: [
               {
-                chainId: binanceChainId,
-                chainName: "BNB Chain Testnet",
-                rpcUrls: ["https://data-seed-prebsc-1-s1.bnbchain.org:8545"],
-                blockExplorerUrls: ["https://testnet.bscscan.com"],
+                chainId: import.meta.env.VITE_SWITCH_CHAINID,
+                chainName: "BNB Smart Chain Mainnet",
+                rpcUrls: [import.meta.env.VITE_BSCURL],
+                blockExplorerUrls: [import.meta.env.VITE_BSC_EXPLORER_URL],
                 nativeCurrency: {
-                  symbol: "tBNB", // 2-6 characters long
+                  symbol: "BNB", // 2-6 characters long
                   decimals: 18,
                 },
               },
@@ -208,7 +209,7 @@ function Swap({ showMessage }) {
     }
   };
 
-  const connectTowalletConnect = async () => {
+  const connectTowalletConnect = async (connectedWalletType) => {
     try {
       if (provider) {
         await provider.disconnect();
@@ -217,7 +218,7 @@ function Swap({ showMessage }) {
       const chainid = import.meta.env.VITE_CHAINID;
       const wcProvider = await WalletConnectProvider.init({
         projectId: import.meta.env.VITE_PROJECT_ID, // from https://cloud.walletconnect.com
-        // chains: [chainid], 
+        // chains: [chainid],
         // showQrModal: true,
         // // optionalChains: [97], // Optional: BSC mainnet
         // rpcMap: {
@@ -240,7 +241,7 @@ function Swap({ showMessage }) {
       if (currentChainId !== BigInt(binanceChainId)) {
         console.log("⚠️ Wrong network! Switching to BSC Testnet...");
         // showMessage(`Wrong network! Switching to BSC Testnet...`, "error");
-        await switchToBscChain();
+        await switchToBscChain(connectedWalletType);
       } else {
         console.log("✅ Connected to BSC Testnet");
       }
@@ -254,7 +255,7 @@ function Swap({ showMessage }) {
       console.log("errorr::", err);
     }
   };
-  async function connectToMetaMask() {
+  async function connectToMetaMask(connectedWalletType) {
     try {
       if (!window.ethereum) {
         alert("MetaMask is not installed!");
@@ -283,7 +284,7 @@ function Swap({ showMessage }) {
           // showMessage("Wrong network, switching to BSC...", "warning");
           console.warn("Wrong network, switching to BSC...");
 
-          await switchToBscChain();
+          await switchToBscChain(connectedWalletType);
         }
 
         // 3️⃣ Get balance after connection
@@ -474,7 +475,7 @@ function Swap({ showMessage }) {
       return false;
     }
   };
-  async function connectToTrustWallet() {
+  async function connectToTrustWallet(value) {
     // alert("trust")
     // if (mobileCheck()) {
     //   console.log("mobileCheck ::");
@@ -488,7 +489,7 @@ function Swap({ showMessage }) {
       //  const chainId = await window.ethereum.request({
       //   method: "eth_chainId",
       // });
-      if (account) connectToBinance();
+      if (account) connectToBinance(value);
     } else {
       const trustWalletLink =
         "https://link.trustwallet.com/open_url?coin_id=60&url=" +
@@ -693,9 +694,9 @@ function Swap({ showMessage }) {
     console.log("handlePopupClose -->", value);
     if (value === "Binance" || value === "Trust Wallet") {
       if (mobileCheck()) {
-        connectToTrustWallet();
+        connectToTrustWallet(value);
       } else {
-        connectToBinance();
+        connectToBinance(value);
       }
       // connectToBinanceWallet();
     } else if (value === "Metamask") {
@@ -715,12 +716,12 @@ function Swap({ showMessage }) {
       // }
 
       if (mobileCheck()) {
-        connectToMetamaskMobile();
+        connectToMetamaskMobile(value);
       } else {
-        connectToMetaMask();
+        connectToMetaMask(value);
       }
     } else if (value === "WalletConnect") {
-      connectTowalletConnect();
+      connectTowalletConnect(value);
     }
   };
   const onRefresh = () => {
@@ -768,10 +769,6 @@ function Swap({ showMessage }) {
     // this.setState({ swapInfo, page: 1 }, async () => {
     // const { walletAddress, swapType, amount, selectedWallet } = this.state;
 
-    if (connectedWalletAddress) {
-      setPage(1);
-    }
-
     if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
       console.log("which wallet connect:", selectedWallet);
       // const result = await contract.methods
@@ -780,34 +777,27 @@ function Swap({ showMessage }) {
       // const balance = Number(result) / 1e9;
       let balance;
       if (selectedWallet && selectedWallet == "WalletConnect") {
-        console.log("wallet connect..");
         const web3 = new Web3(provider);
-        const currentChainId = await web3.eth.getChainId();
-        console.log("currentChainId:retryIfWrongNetwork", currentChainId);
+        // const currentChainId = await web3.eth.getChainId();
 
-        const accounts = await web3.eth.getAccounts();
-        console.log("accounts::", accounts[0]);
+        // const accounts = await web3.eth.getAccounts();
+        // console.log("accounts::", accounts[0]);
 
-        const weiBalance = await web3.eth.getBalance(accounts[0]);
-        console.log("weiBalance:", weiBalance);
-        console.log(
-          "baln:",
-          parseFloat(web3.utils.fromWei(weiBalance, "ether"))
-        );
+        // const weiBalance = await web3.eth.getBalance(accounts[0]);
+
         const contract = await new web3.eth.Contract(
           // wbdxAbi.abi,
           // "0x90bbdDbF3223363898065b9C736e2B86C655762b"
           matrixAbi.abi,
           import.meta.env.VITE_CONTRACT_ADDR
         );
-        console.log("contract:", contract);
+        // console.log("contract:", contract);
         const result = await contract.methods
           .balanceOf(connectedWalletAddress)
           .call();
-        console.log("tokenBAL:", result);
-        const balance = result.toString() / 1e9;
+        // console.log("tokenBAL:", result);
+        balance = result.toString() / 1e9;
         console.log("balance:", balance);
-        console.log("contract._address:", contract._address);
       } else {
         const result = await contract.methods
           .balanceOf(connectedWalletAddress)
@@ -817,10 +807,9 @@ function Swap({ showMessage }) {
       if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
         if (parseFloat(amount) > parseFloat(balance)) {
           showMessage(t("exceedingBalanceWarning"), "error");
-          console.log(t("exceedingBalanceWarning"));
         } else if (parseFloat(amount) > 0) {
-          console.log("make payment");
           makeTransaction();
+          setPage(1);
         } else {
           showMessage(t("greaterThanZeroError"), "error");
           console.log(t("greaterThanZeroError"), parseFloat(amount), amount);
