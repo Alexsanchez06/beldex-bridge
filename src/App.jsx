@@ -5,13 +5,13 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import { Snackbar, Swap, ImageLoader } from "@components";
 import theme from "@theme";
-import { useDispatch, useSelector } from "react-redux";
-import {getBalance} from './store/swapReducer';
-import {selectBalance,selectSwapLoading}from './store/swapSelector'
+import {  useSelector } from "react-redux";
+// import {getBalance} from './store/swapReducer';
+import {selectSwapLoading}from './store/swapSelector'
 import CircularProgress from "@mui/material/CircularProgress";
 
 export default function App() {
-  const dispatch=useDispatch();
+  // const dispatch=useDispatch();
 
   const [snackbar, setSnackbar] = useState({
     message: null,
@@ -20,12 +20,12 @@ export default function App() {
   });
   // const [balance, setBalance] = useState("");
 
-  const balance=useSelector(selectBalance);
+  // const balance=useSelector(selectBalance);
   const loading = useSelector(selectSwapLoading);
-  useEffect(() => {
-    // Fetch balance on mount
-    dispatch(getBalance());
-  }, []);
+  // useEffect(() => {
+  //   // Fetch balance on mount
+  //   dispatch(getBalance());
+  // }, []);
 
   const showMessage = (message, variant = "error") => {
     setSnackbar({
@@ -98,19 +98,19 @@ export default function App() {
   };
 
   // Calculate balance display values
-  let bal = 0;
-  let total = 0;
+  // let bal = 0;
+  // let total = 0;
 
-  if (balance && balance.length > 0) {
-    bal = Number(parseFloat(balance[0].movedBalance).toFixed(2)).toLocaleString(
-      "en",
-      { minimumFractionDigits: 2 }
-    );
-    total = Number(parseFloat(balance[0].totalSupply).toFixed(2)).toLocaleString(
-      "en",
-      { minimumFractionDigits: 2 }
-    );
-  }
+  // if (balance && balance.length > 0) {
+  //   bal = Number(parseFloat(balance[0].movedBalance).toFixed(2)).toLocaleString(
+  //     "en",
+  //     { minimumFractionDigits: 2 }
+  //   );
+  //   total = Number(parseFloat(balance[0].totalSupply).toFixed(2)).toLocaleString(
+  //     "en",
+  //     { minimumFractionDigits: 2 }
+  //   );
+  // }
 
   return (
     <ThemeProvider theme={createTheme(theme)}>
@@ -122,8 +122,8 @@ export default function App() {
         <div className="d-flex-center">
           <Swap
             showMessage={showMessage}
-            movedBalance={bal}
-            totalSupply={total}
+            // movedBalance={bal}
+            // totalSupply={total}
           />
           <Snackbar
             message={snackbar.message}

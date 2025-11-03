@@ -19,7 +19,7 @@ const variantIcon = {
 };
 
 const textClasses = {
-  warning: 'blackText',
+  warning: 'primaryText',
 };
 
 const capitalize = (s) => {

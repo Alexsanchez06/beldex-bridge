@@ -38,7 +38,7 @@ import {
 import {
   selectInfo,
   selectSwaps,
-  selectBalance,
+  // selectBalance,
   selectUnconfirmedBeldexTxs,
   selectSwapError,
   selectSwapLoading,
@@ -61,7 +61,7 @@ function Swap({ showMessage }) {
   // Redux-backed data
   const info = useSelector(selectInfo);
   const swaps = useSelector(selectSwaps);
-  const totalbalance = useSelector(selectBalance);
+  // const totalbalance = useSelector(selectBalance);
   const unconfirmed = useSelector(selectUnconfirmedBeldexTxs);
   const loading = useSelector(selectSwapLoading);
   const error = useSelector(selectSwapError);
@@ -239,14 +239,14 @@ function Swap({ showMessage }) {
           [chainid]: import.meta.env.VITE_BSCURL,
         },
       });
-      const binanceChainId = import.meta.env.VITE_CHAINID;
+      const binanceChainId = __SWITCH_CHAINID__;
       await wcProvider.enable();
       setProvider(wcProvider);
       const web3 = await new Web3(wcProvider);
       const accounts = await web3.eth.getAccounts();
       const currentChainId = await web3.eth.getChainId();
       if (currentChainId !== BigInt(binanceChainId)) {
-        console.log("⚠️ Wrong network! Switching to BSC Testnet...");
+        console.log("⚠️ Wrong network! Switching to BSC ...");
         // showMessage(`Wrong network! Switching to BSC Testnet...`, "error");
         await switchToBscChain(connectedWalletType);
       } else {
@@ -265,7 +265,10 @@ function Swap({ showMessage }) {
   async function connectToMetaMask(connectedWalletType) {
     try {
       if (!window.ethereum) {
-        alert("MetaMask is not installed!");
+        showMessage(
+          `MetaMask is not installed!`,
+          "error"
+        );
         return;
       }
 
@@ -855,7 +858,7 @@ function Swap({ showMessage }) {
   // Selection page
 
   const renderSelection = useCallback(
-    (totalSupply, movedBalance) => {
+    () => {
       return (
         <Grid container className={classes.registerWrapper}>
           <Grid size={{ xs: 12, md: 5 }}>
@@ -875,8 +878,8 @@ function Swap({ showMessage }) {
               <SwapSelection
                 swapType={swapType}
                 info={info}
-                totalSupply={totalSupply}
-                movedBalance={movedBalance}
+                // totalSupply={totalSupply}
+                // movedBalance={movedBalance}
                 onSwapTypeChanged={swapTypeChanged}
                 onNext={handleNext}
                 loading={loading}
@@ -983,11 +986,11 @@ function Swap({ showMessage }) {
 
   // Main render
   // totalSupply and movedBalance should be read from info/balance selectors.
-  const totalSupply = totalbalance?.totalSupply;
-  const movedBalance = totalbalance?.movedBalance;
+  // const totalSupply = totalbalance?.totalSupply;
+  // const movedBalance = totalbalance?.movedBalance;
   return (
     <Grid container className={classes.root} spacing={2}>
-      {page === 0 && renderSelection(totalSupply, movedBalance)}
+      {page === 0 && renderSelection()}
       {page === 1 && renderInfo()}
       <div className={classes.bottomSpacing}></div>
     </Grid>

@@ -17,11 +17,11 @@ import binance from "../popup/binance.png";
 import metamask from "../popup/metamask.png";
 import trustwallet from "../popup/trustWallet.png"
 import walletConnect from "../popup/walletConnect.png"
-import { useDispatch, useSelector } from "react-redux";
+// import { useDispatch, useSelector } from "react-redux";
 
-import { getBalance } from "../../store/swapReducer";
-import { selectBalance } from "../../store/swapSelector";
-import CircularProgress from "@mui/material/CircularProgress";
+// import { getBalance } from "../../store/swapReducer";
+// import { selectBalance } from "../../store/swapSelector";
+// import CircularProgress from "@mui/material/CircularProgress";
 
 const walletCreationUrl = {
   [TYPE.BDX]: config.beldex.walletCreationUrl,
@@ -38,8 +38,8 @@ function SwapSelection({
   disconnet,
   connectedWalletBalance,
   connectToMetaMask,
-  totalSupply: initialTotalSupply,
-  movedBalance: initialMovedBalance,
+  // totalSupply: initialTotalSupply,
+  // movedBalance: initialMovedBalance,
   info,
   setAmount,
   amount,
@@ -52,32 +52,32 @@ function SwapSelection({
   const [swapType, setSwapType] = useState("bdx_to_bbdx");
   const [loginOpen, setLoginOpen] = useState(false);
   const [amountError, setAmountError] = useState("");
-  const [totalSupply, setTotalSupply] = useState(initialTotalSupply);
-  const [movedBalance, setMovedBalance] = useState(initialMovedBalance);
+  // const [totalSupply, setTotalSupply] = useState(initialTotalSupply);
+  // const [movedBalance, setMovedBalance] = useState(initialMovedBalance);
 
-  const balance = useSelector(selectBalance) || [];
-  const dispatch = useDispatch();
-  useEffect(() => {
-    if (balance && balance.length > 0) {
-      const bal = Number(
-        parseFloat(balance[0].movedBalance).toFixed(2)
-      ).toLocaleString("en", { minimumFractionDigits: 2 });
-      const total = Number(
-        parseFloat(balance[0].totalSupply).toFixed(2)
-      ).toLocaleString("en", { minimumFractionDigits: 2 });
+  // const balance = useSelector(selectBalance) || [];
+  // const dispatch = useDispatch();
+  // useEffect(() => {
+  //   if (balance && balance.length > 0) {
+  //     const bal = Number(
+  //       parseFloat(balance[0].movedBalance).toFixed(2)
+  //     ).toLocaleString("en", { minimumFractionDigits: 2 });
+  //     const total = Number(
+  //       parseFloat(balance[0].totalSupply).toFixed(2)
+  //     ).toLocaleString("en", { minimumFractionDigits: 2 });
 
-      if (swapType === "bdx_to_bbdx") {
-        if (total === bal) {
-          setLoginOpen(true);
-        }
-      } else {
-        setLoginOpen(false);
-      }
+  //     if (swapType === "bdx_to_bbdx") {
+  //       if (total === bal) {
+  //         setLoginOpen(true);
+  //       }
+  //     } else {
+  //       setLoginOpen(false);
+  //     }
 
-      setTotalSupply(total);
-      setMovedBalance(bal);
-    }
-  }, [balance, swapType]);
+  //     setTotalSupply(total);
+  //     setMovedBalance(bal);
+  //   }
+  // }, [balance, swapType]);
   const handleNext = async () => {
     const isValidAddress = address && address.length > 0;
     setAddressError(!isValidAddress);
@@ -124,7 +124,7 @@ function SwapSelection({
     }
     onSwapTypeChanged(value);
     setSwapType(value);
-    dispatch(getBalance);
+    // dispatch(getBalance);
   };
 
   const getAddressType = () => {
@@ -345,8 +345,8 @@ SwapSelection.propTypes = {
     PropTypes.number,
   ]),
   connectToMetaMask: PropTypes.func,
-  totalSupply: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  movedBalance: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  // totalSupply: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  // movedBalance: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   info: PropTypes.object,
 };
 
