@@ -31,7 +31,7 @@ const apiRequest = async ({ endpoint, method, body }) => {
   return data.result;
 }
 catch (error) {
-  console.log('api error ',error)
+  console.log('axios Error ',error)
   if (error.status===400 && error?.response?.data) {
     // Pass API error up
     throw error?.response?.data?.result || error.code;

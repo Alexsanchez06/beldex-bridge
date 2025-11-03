@@ -159,20 +159,17 @@ function Swap({ showMessage }) {
 
   const switchToBscChain = async (connectedWalletType) => {
     try {
-      const binanceChainId = import.meta.env.VITE_CHAINID;
+      const binanceChainId = __SWITCH_CHAINID__;
       if (connectedWalletType == "WalletConnect" && !provider) {
         console.error("❌ Provider not found. Connect wallet first.");
-        showMessage(
-          `Provider not found.Connect wallet first.`,
-          "error"
-        );
+        showMessage(`Provider not found.Connect wallet first.`, "error");
         return;
       }
       const provider =
         connectedWalletType == "WalletConnect" ? provider : window.ethereum;
       await provider.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: import.meta.env.VITE_SWITCH_CHAINID }],
+        params: [{ chainId: binanceChainId }],
       });
     } catch (switchError) {
       console.log("switchError ::", switchError);
@@ -186,11 +183,13 @@ function Swap({ showMessage }) {
         );
         // }
         try {
+          const provider =
+          connectedWalletType == "WalletConnect" ? provider : window.ethereum;
           await provider.request({
             method: "wallet_addEthereumChain",
             params: [
               {
-                chainId: import.meta.env.VITE_SWITCH_CHAINID,
+                chainId:__SWITCH_CHAINID__,
                 chainName: "BNB Smart Chain Mainnet",
                 rpcUrls: [import.meta.env.VITE_BSCURL],
                 blockExplorerUrls: [import.meta.env.VITE_BSC_EXPLORER_URL],
@@ -201,10 +200,18 @@ function Swap({ showMessage }) {
               },
             ],
           });
+          showMessage(
+            `The Binance Smart Chain has been successfully added to your wallet.`,
+            "success"
+          );
         } catch (addError) {
           // handle "add" error
           console.log("error:", addError);
         }
+      }
+      else
+      {
+        return;
       }
     }
   };
@@ -243,7 +250,7 @@ function Swap({ showMessage }) {
         // showMessage(`Wrong network! Switching to BSC Testnet...`, "error");
         await switchToBscChain(connectedWalletType);
       } else {
-        console.log("✅ Connected to BSC Testnet");
+        console.log("✅ Connected to BSC ");
       }
       const weiBalance = await web3.eth.getBalance(accounts[0]);
       setWalletAddress(accounts[0]);
@@ -274,10 +281,8 @@ function Swap({ showMessage }) {
         const chainId = await window.ethereum.request({
           method: "eth_chainId",
         });
-        console.log("chain id :", chainId);
 
         const binanceChainId = import.meta.env.VITE_CHAINID; // ✅ BSC Mainnet (use '0x61' for testnet)
-        console.log("chaind nina:", binanceChainId);
         if (chainId === binanceChainId) {
           showMessage(`Bravo! You are on the correct network.`, "success");
         } else {
@@ -414,7 +419,7 @@ function Swap({ showMessage }) {
     }
     // }
   };
-  const connectToBinance = async () => {
+  const connectToBinance = async (connectedWalletType) => {
     let mobileView = await mobileCheck();
     web3Obj = new Web3(window.ethereum);
     try {
@@ -425,18 +430,6 @@ function Swap({ showMessage }) {
       if (web3Obj) {
         setWalletConnBin(true);
 
-        const BSC_TESTNET_PARAMS = {
-          chainId: import.meta.env.VITE_CHAINID, // 97 in hex
-          chainName: "Binance Smart Chain Testnet",
-          nativeCurrency: {
-            name: "Binance Coin",
-            symbol: "tBNB",
-            decimals: 18,
-          },
-          rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
-          blockExplorerUrls: ["https://testnet.bscscan.com/"],
-        };
-
         const account = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
@@ -445,34 +438,26 @@ function Swap({ showMessage }) {
         const chainId = await window.ethereum.request({
           method: "eth_chainId",
         });
-        if (chainId !== "0x61") {
-          try {
-            await window.ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: BSC_TESTNET_PARAMS.chainId }],
-            });
-          } catch (switchError) {
-            if (switchError.code === 4902) {
-              await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [BSC_TESTNET_PARAMS],
-              });
-            } else {
-              console.error(switchError);
-            }
-          }
+        const binanceChainId = import.meta.env.VITE_CHAINID;
+        if (chainId === binanceChainId) {
+          showMessage(`Bravo! You are on the correct network.`, "success");
+        } else {
+          console.warn("Wrong network, switching to BSC...");
+          await switchToBscChain(connectedWalletType);
         }
         getBalance(address);
-        contract = new web3Obj.eth.Contract(matrixAbi.abi, __CONTRACT_ADDR__);
-        setWalletAddress(mobileView ? address[0] : address);
-        window.BinanceChain.on("accountsChanged", async (accounts) => {
-          const address = accounts[0] || null;
-          setWalletAddress(mobileView ? address[0] : address);
+        setWalletAddress(address);
+        // 4️⃣ Handle account change
+        window.ethereum.on("accountsChanged", (newAccounts) => {
+          if (newAccounts.length > 0) {
+            const newAddress = newAccounts[0];
+            setWalletAddress(newAddress);
+            getBalance(newAddress);
+          }
         });
-        window.ethereum.on("chainChanged", () => window.location.reload());
       }
     } catch (error) {
-      return false;
+      console.log(error);
     }
   };
   async function connectToTrustWallet(value) {
@@ -530,7 +515,6 @@ function Swap({ showMessage }) {
         web3.eth
           .sendTransaction(options)
           .on("transactionHash", (hash) => {
-            console.log("✅ Transaction hash:", hash);
             const reqObj = {
               uuid: swapResult.uuid,
               amount,
@@ -538,11 +522,9 @@ function Swap({ showMessage }) {
               memo: swapResult.memo,
               hash: hash,
             };
-            console.log("reqObj:", reqObj);
             dispatch(sendTransactionHash(reqObj));
           })
           .on("confirmation", (confirmationNumber) => {
-            console.log("confirmationNumber:", confirmationNumber);
             const reqObj = {
               uuid: swapResult.uuid,
               amount,
@@ -550,11 +532,10 @@ function Swap({ showMessage }) {
               memo: swapResult.memo,
               hash: confirmationNumber.receipt.transactionHash,
             };
-            console.log("reqObj:", reqObj);
             dispatch(sendTransactionHash(reqObj));
           })
           .on("error", (error) => {
-            console.log("errnwofiiorrr:", error);
+            console.error("err:", error);
           });
 
         return;
@@ -578,7 +559,7 @@ function Swap({ showMessage }) {
                 memo: swapResult.memo,
                 hash: confirmationNumber.receipt.transactionHash,
               };
-              console.log("meta swap:", swapResult);
+
               dispatch(sendTransactionHash(reqObj));
               // }
             } catch (innerErr) {
@@ -616,7 +597,6 @@ function Swap({ showMessage }) {
 
   const swapTypeChanged = async (swapType) => {
     setSwapType(swapType);
-    console.log("walletAddress -->", walletAddress);
 
     if (swapType === SWAP_TYPE.BBDX_TO_BDX) {
       // if (walletAddress === "" && window.innerWidth > 720) {
@@ -648,11 +628,9 @@ function Swap({ showMessage }) {
     // const web3Obj = new Web3(window.ethereum);
     //   const balance = await web3Obj.eth.getBalance(address, (err, wei) => { });
     const web3 = new Web3(window.ethereum);
-    console.log("connectToMetaMask 2 getBalance[0]-->", address);
 
     // Get balance in Wei
     const balance = await web3.eth.getBalance(address);
-    console.log("connectToMetaMask 2 balance[0]-->", balance);
     // const result = await contract.methods
     //       .balanceOf(walletAddress)
     //       .call();
@@ -691,7 +669,6 @@ function Swap({ showMessage }) {
   const handlePopupClose = (value) => {
     setShowPopup(!showPopup);
     setSelectedWallet(value);
-    console.log("handlePopupClose -->", value);
     if (value === "Binance" || value === "Trust Wallet") {
       if (mobileCheck()) {
         connectToTrustWallet(value);
@@ -770,7 +747,6 @@ function Swap({ showMessage }) {
     // const { walletAddress, swapType, amount, selectedWallet } = this.state;
 
     if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
-      console.log("which wallet connect:", selectedWallet);
       // const result = await contract.methods
       //   .balanceOf(connectedWalletAddress)
       //   .call();
@@ -791,13 +767,10 @@ function Swap({ showMessage }) {
           matrixAbi.abi,
           import.meta.env.VITE_CONTRACT_ADDR
         );
-        // console.log("contract:", contract);
         const result = await contract.methods
           .balanceOf(connectedWalletAddress)
           .call();
-        // console.log("tokenBAL:", result);
         balance = result.toString() / 1e9;
-        console.log("balance:", balance);
       } else {
         const result = await contract.methods
           .balanceOf(connectedWalletAddress)
@@ -812,7 +785,6 @@ function Swap({ showMessage }) {
           setPage(1);
         } else {
           showMessage(t("greaterThanZeroError"), "error");
-          console.log(t("greaterThanZeroError"), parseFloat(amount), amount);
         }
       } else {
         console.log(

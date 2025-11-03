@@ -42,6 +42,7 @@ export default ({ mode }) => {
       __CONTRACT_ADDR__: JSON.stringify(env.VITE_CONTRACT_ADDR),
       __CHAINID__: JSON.stringify(env.VITE_CHAINID),
       __BSCURL__: JSON.stringify(env.VITE_BSCURL),
+      __SWITCH_CHAINID__: JSON.stringify(env.VITE_SWITCH_CHAINID),
     },
     optimizeDeps: {
       esbuildOptions: {

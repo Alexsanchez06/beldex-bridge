@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useMemo} from "react";
 import { useInView } from "react-intersection-observer";
 import CssBaseline from "@mui/material/CssBaseline";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -46,17 +46,24 @@ export default function App() {
       triggerOnce: true,
       threshold: 0.1,
     });
-
+  
+    // Memoize image rendering when inView is true
+    const backgroundImg = useMemo(() => {
+      if (!inView) return null;
+      return (
+        <ImageLoader
+          style={{ width: "100%", height: "100%", position: "absolute" }}
+          className="backgroundImage"
+          loadedClassName="backgroundImageLoaded"
+          src="/images/bdxAndBeldexBG.jpg"
+          alt="Background"
+        />
+      );
+    }, []); // only re-renders when inView changes
+  
     return (
       <div id="background" ref={ref}>
-        {inView && (
-          <ImageLoader style={{width:"100%",height:"100%",position:'absolute' }}
-            className="backgroundImage"
-            loadedClassName="backgroundImageLoaded"
-            src="/images/bdxAndBeldexBG.jpg"
-            alt="Background"
-          />
-        )}
+        {backgroundImg}
       </div>
     );
   };
