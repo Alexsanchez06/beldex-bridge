@@ -1,16 +1,50 @@
-# React + Vite
+# Beldex Bridge Front End
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the front end used for the beldex bridge application.
 
-Currently, two official plugins are available:
+## Pre-requisites
+  - Node 11.15.0
+    - This can be installed using [nvm](https://github.com/nvm-sh/nvm)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Installation
 
-## React Compiler
+If you're using `nvm` then run:
+```
+nvm use
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Install all the dependencies:
+```
+npm install
+```
 
-## Expanding the ESLint configuration
+Edit `config/config.js` with your required settings.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Development
+
+To run the app in development mode, simply run:
+```
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+### Production
+
+The application needs to be built for production.
+This can be done by running:
+```
+npm run build
+```
+
+This should build everything and place it in the `build` folder.<br>
+All that needs to be done is to deploy the application.
+
+You can deploy by running the provided server
+```
+npm start
+```
+
+Or you can choose your own deployment method.
+
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.

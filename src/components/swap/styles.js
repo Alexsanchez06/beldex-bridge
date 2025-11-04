@@ -1,173 +1,43 @@
-import { common } from "@theme";
+import { common } from '@theme';
 
-const styles = (theme) => ({
-  root: {
-    [theme.breakpoints.down("sm")]: {
-      paddingBottom: "40px",
-    },
-  },
+const styles = theme => ({
   item: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    marginTop: "20px",
-    overflow: "auto",
-    height: "448px",
-    [theme.breakpoints.down("sm")]: {
-      marginTop: "10px",
-      overflow: "unset",
-      height: "unset",
-    },
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
   },
   itemColumn: {
-    display: "flex",
-    flexDirection: "column",
+    display: 'flex',
+    flexDirection: 'column',
   },
   spaceBetweenRow: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  txHeader: {
-    backgroundColor: "#2E2E44",
-    borderRadius: "10px",
-    padding: "7px",
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   statTitle: {
-    marginRight: "4px",
-    fontSize: "0.84rem",
-    color: "#AFAFBE",
-    fontWeight: "600",
-    [theme.breakpoints.down("sm")]: {
-      fontSize: "0.7rem",
-    },
+    marginRight: '4px',
+    fontSize: '0.84rem'
   },
   statAmount: {
-    color: "#EBEBEB",
-    fontWeight: "600",
-    fontSize: "0.94rem",
-    [theme.breakpoints.down("sm")]: {
-      fontSize: "0.84rem",
-    },
+    fontWeight: '600',
+    fontSize: '0.94rem'
   },
   transactionTitle: {
-    fontSize: "16px",
-    fontWeight: "600",
-    [theme.breakpoints.down("md")]: {
-      fontSize: "0.8rem",
-    },
+    fontSize: '16px'
   },
-  hash: {
-    fontSize: "14px",
+  hash:{
+    fontSize: '14px'
   },
   section: {
     ...common.section,
-    height: "447px",
-    padding: "10px",
-    [theme.breakpoints.up("md")]: {
-      maxWidth: "800px",
-      margin: "auto",
-    },
-  },
-  sectionSwap: {
-    ...common.section,
-    height: "447px",
-    overflowX: "hidden",
-    padding: "10px",
-    [theme.breakpoints.up("md")]: {
-      maxWidth:'unset',
-      margin: "unset",
-    },
-    
-    [theme.breakpoints.down("sm")]: {
-      padding:0
-    },
-  },
- 
-  backBox: {
-    display: "flex",
-    alignItems: "center",
-    fontSize: "0.90rem",
-    marginBottom: "10px",
-    cursor:'pointer',
-    width:'76px',
-  },
-  backImg: {
-    fill:"#AFAFBE",
-    marginRight: "5px",
-    '&:hover':{
-      fill:'#fff',
-      color:'#fff'
+    height: '467px',
+    overflowX: 'hidden',
+    [theme.breakpoints.up('md')]: {
+      maxWidth: '800px',
+      margin: 'auto',
     }
-  },
-  backTxt: {
-    fontWeight: "500",
-    fontSize: "1.1rem",
-  },
-  balanceBox: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dashBoard: {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItem: "center",
-    padding: '15px 22px',
-    border: "0.5px #56566C solid",
-    backgroundColor: "#1C1C26",
-    borderRadius: "20px",
-    [theme.breakpoints.down("sm")]: {
-      border: "unset",
-      padding: "unset",
-      paddingTop: "15px",
-    },
-  },
-  leftPane: {
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    padding: "20px",
-  },
-  rightPaneWrapper: {
-    width: "70%",
-    minHeight: '440px',
-    padding: "25px 20px",
-    marginLeft: "auto",
-    borderRadius: "30px",
-    border: "0.5px solid #56566c",
-    background: "#1c1c26",
-    boxShadow: "0px 6px 94px 0px rgba(0, 0, 0, 0.2)",
-    // [theme.breakpoints.between("xs", "sm")]: {
-    //   width: "91%",
-    //   height: 'unset',
-    //   margin: "auto",
-    //   padding: "10px",
-    // },
-  },
-  swapList: {
-    borderRadius: "10px",
-    border: "1px #393954 solid",
-  },
-  scroll: {
-    overflowX: "hidden",
-  },
-  bottomSpacing: {
-    [theme.breakpoints.between("xs", "sm")]: {
-      height: "70px",
-      width: "100%",
-    },
-  },
-  dFlexSpacebw:{
-    display: "flex",
-    flexDirection: "row",
-    alignContent: "center",
-    justifyContent: "space-between",
   }
 });
 

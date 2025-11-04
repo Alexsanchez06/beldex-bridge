@@ -1,25 +1,29 @@
-// import { common } from "@theme"; // Import if needed
+import { common } from '@theme';
 
-const styles = {
+const styles = theme => ({
   root: {
-    width: '100%',
-    margin: 'auto',
-    backgroundColor: '#1C1C26 !important',
+    backgroundColor: '#292a33 !important',
+    padding: '1.5rem',
+    // boxShadow: "0px 0px 30px rgb(36 36 36)",
     color: '#000',
+    border: '1px solid #f00',
+    position: 'relative',
     borderRadius: '10px !important',
-    // ...common.section, // Spread if needed
+    paddingTop: '90px',
+    [theme.breakpoints.up('md')]: {
+      maxWidth: '500px',
+    },
+    ...common.section,
   },
   button: {
-    '& .Mui-disabled': {
-      borderRadius: '50px',
-      border: '1px solid #00AD07',
-      background: '#242433',
-    },  
+    marginTop: '24px'
   },
   createAccount: {
     fontSize: '0.8rem',
+    textDecoration: 'underline',
     textAlign: 'center',
     marginBottom: '0px',
+    cursor: 'pointer',
     display: 'inline-block',
     color: '#fff',
     width: '100%',
@@ -29,59 +33,32 @@ const styles = {
     textAlign: 'center',
     width: '100%',
     marginTop: '20px',
-    color: '#000',
-    fontSize: '14px',
-  },
-  viewLink: {
-    color: '#2FA6FF',
-    textDecoration: 'underline',
+    color: "#000",
+    fontSize: '14px'
   },
   closeBtn: {
     position: 'absolute',
     top: '5px',
     right: 0,
-    background: 'transparent !important',
+    background: 'transparent !important'
   },
   belSelect: {
-    color: '#000',
+    color: "#000"
   },
   swapTabs: {
+    position: 'absolute',
     width: '100%',
     left: '0px',
     top: '0px',
     zIndex: '9',
   },
   swapFee: {
-    marginTop: '5px',
     fontSize: '12px',
-    textAlign: 'end',
-    color: '#AFAFBE',
-    fontFamily: 'Poppins',
-    fontStyle: 'normal',
-    fontWeight: 400,
-  },
-  amountError: {
-    color: 'red',
-    fontSize: '12px',
-  },
-  wbdxAddressTitle: {
-    color: '#AFAFBE',
-    textAlign: 'center',
-    fontFamily: 'Poppins',
-    fontSize: '14px',
-    fontStyle: 'normal',
-    fontWeight: 300,
-    wordBreak: 'break-all',
-  },
-  wbdxAddress: {
-    wordBreak: 'break-all',
-    color: '#EBEBEB',
-    textAlign: 'center',
-    fontFamily: 'Poppins',
-    fontSize: '15px',
-    fontStyle: 'normal',
-    fontWeight: 300,
-  },
-};
+    position: 'absolute',
+    right: '15px',
+    top: '60px',
+    zIndex: '9',
+  }
+});
 
 export default styles;
