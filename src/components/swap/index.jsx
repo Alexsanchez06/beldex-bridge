@@ -748,6 +748,9 @@ function Swap({ showMessage }) {
   const onTokenSwapped = async () => {
     // this.setState({ swapInfo, page: 1 }, async () => {
     // const { walletAddress, swapType, amount, selectedWallet } = this.state;
+    if (connectedWalletAddress) {
+      setPage(1);
+    }
 
     if (swapType === SWAP_TYPE.BBDX_TO_BDX && connectedWalletAddress) {
       // const result = await contract.methods
@@ -785,7 +788,6 @@ function Swap({ showMessage }) {
           showMessage(t("exceedingBalanceWarning"), "error");
         } else if (parseFloat(amount) > 0) {
           makeTransaction();
-          setPage(1);
         } else {
           showMessage(t("greaterThanZeroError"), "error");
         }
