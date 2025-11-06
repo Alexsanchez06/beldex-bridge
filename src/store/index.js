@@ -1,3 +1,6 @@
-import store from "./store"
+import dispatcher from './dispatcher';
+import store from './store';
+import * as Actions from './actions';
+import * as Events from './events';
 
-export  {store};
+export { dispatcher, store, Actions, Events };

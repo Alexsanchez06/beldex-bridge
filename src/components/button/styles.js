@@ -1,7 +1,5 @@
-const styles = {
+const styles = theme => ({
   root: {
-    width: '60%',
-    margin: 'auto',
     position: 'relative',
   },
   button: {
@@ -13,40 +11,29 @@ const styles = {
     letterSpacing: '0.03em',
     fontSize: '14px',
     backgroundColor: '#20c128',
-    color: 'white',
+    color: '#000',
     textTransform: 'capitalize',
-    borderRadius: '40px',
-    marginTop: '20px',
+    borderRadius: '8px',
     '&:hover': {
       backgroundColor: '#198c1e',
       color: '#fff',
-      border: 'none',
-    },
-   '&.Mui-disabled': {
-      backgroundColor: '#242433',
-      color: 'rgba(255, 255, 255, 0.7)',
-      border: '1px solid #00AD07'
+      border: 'none'
     }
-
   },
   secondary: {
-    backgroundColor: 'transparent',
-    border: '1px solid',
-    borderColor: 'secondary.main',
-    color: 'secondary.main',
+    border: `1px solid ${theme.palette.secondary.main}`,
     '&:hover': {
-      backgroundColor: 'secondary.main',
-      color: '#fff',
-    },
+      backgroundColor: theme.palette.secondary.main,
+    }
   },
   buttonProgress: {
     color: 'white',
     position: 'absolute',
     top: '50%',
     left: '50%',
-    marginTop: '-12px',
-    marginLeft: '-12px',
+    marginTop: -12,
+    marginLeft: -12,
   },
-};
+});
 
 export default styles;

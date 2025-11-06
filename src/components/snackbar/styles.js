@@ -1,60 +1,37 @@
-export const styles = {
+import { amber, green } from '@material-ui/core/colors';
+import { colors } from '@theme';
+
+const styles = theme => ({
   success: {
-    backgroundColor: '#13131B',
-    border: '1px solid #3CBC43',
-    borderRadius: '15px',
+    backgroundColor: green[600],
   },
   error: {
-    backgroundColor: '#13131B',
-    border: '1px solid #DC4040',
-    borderRadius: '15px',
-    height: '60px',
+    backgroundColor: theme.palette.error.dark,
   },
   info: {
-    backgroundColor: 'primary.main',
-    borderRadius: '15px',
+    backgroundColor: theme.palette.primary.main,
   },
   warning: {
-    backgroundColor: '#13131B',
-    border: '1px solid #FFBC00',
-    borderRadius: '15px',
+    backgroundColor: amber[700],
   },
   icon: {
-    width: '17px',
+    fontSize: 20,
   },
   iconVariant: {
     opacity: 0.9,
-    marginRight: '8px',
+    marginRight: theme.spacing(1),
     marginTop: '0px',
-  },
-  contentWrapper: {
-    '& .MuiSnackbarContent-message': {
-      width: '90%',
-    },
-  },
-  closeIcon: {
-    position: 'absolute',
-    top: '-46px',
-    right: '-22px',
-    backgroundColor: '#13131B',
-    borderRadius: '20px',
-    width: '26px',
-    height: '26px',
-    display: 'flex',
-    '&:hover': {
-      backgroundColor: '#494969',
-    },
   },
   message: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   primaryText: {
-    color: 'text.primary',
+    color: theme.palette.text.primary,
   },
   blackText: {
-    color: '#000', // Replace with actual value from colors.belBlack
-  },
-};
+    color: colors.belBlack,
+  }
+});
 
 export default styles;
